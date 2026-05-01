@@ -129,3 +129,7 @@ MSc Physics & Engineering, UCL
 Software Developer  
 
 GitHub: https://github.com/eswarib
+
+## Reference
+1. El-Dib M, Limbrick DD Jr, Inder T, Whitelaw A, Kulkarni AV, Warf B, Volpe JJ, de Vries LS. Management of Post-hemorrhagic Ventricular Dilatation in the Infant Born Preterm. *J Pediatr.* 2020 Nov;226:16-27.e3. doi: [10.1016/j.jpeds.2020.07.079](https://doi.org/10.1016/j.jpeds.2020.07.079). Epub 2020 Jul 30. PMID: 32739263; PMCID: PMC8297821.
+
