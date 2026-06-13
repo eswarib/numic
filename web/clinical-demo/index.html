@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NUMIC — Clinical decision support (demo)</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="banner" role="banner">
+      <strong>Clinical demonstration only.</strong>
+      Not for patient care. NUMIC does not replace unit protocols or clinician judgment. Outputs are illustrative
+      decision support tied to the selected NumicFlow rule bundle.
+    </div>
+    <header>
+      <h1>NUMIC Clinical Decision Support</h1>
+      <p class="subtitle">Neonatal cUS — PHVD framing (demo)</p>
+      <p class="intro-text">
+        This demo shows how <strong>ventricular size</strong> (current scan), <strong>change since the prior scan</strong>,
+        and a <strong>simple clinical modifier</strong> combine into one transparent, versioned score — so teams can see
+        the same inputs and sub-scores in one place.
+      </p>
+    </header>
+
+    <div class="layout">
+      <section class="column" data-region="inputs" aria-label="Assessment inputs">
+        <h2>Assessment inputs</h2>
+
+        <div class="card">
+          <h3>Rule bundle &amp; demo scenario</h3>
+          <label for="scoreVersion">Score version</label>
+          <select id="scoreVersion"></select>
+          <label for="scenarioPreset">Load example prior + current</label>
+          <select id="scenarioPreset">
+            <option value="">— Custom (edit fields below) —</option>
+            <option value="low">Low risk</option>
+            <option value="moderate">Moderate risk</option>
+            <option value="high">High risk</option>
+          </select>
+          <p class="hint">
+            Examples use synthetic mm values. Replace with values from your overlay or workstation when piloting.
+          </p>
+        </div>
+
+        <div class="card">
+          <h3>Patient context (demo)</h3>
+          <div class="grid-2">
+            <div>
+              <label for="externalRef">Demo patient ID</label>
+              <input id="externalRef" type="text" value="DEMO-001" autocomplete="off" />
+            </div>
+            <div>
+              <label for="gaWeeks">Gestational age (weeks)</label>
+              <input id="gaWeeks" type="number" step="0.1" value="28" min="10" max="45" />
+            </div>
+          </div>
+          <label for="viP97Ref">VI reference at elevated percentile for GA (mm)</label>
+          <input id="viP97Ref" type="number" step="0.1" value="12" />
+          <p class="hint">With VI percentile, drives static VI points per the active rule bundle (nomogram line in mm).</p>
+        </div>
+
+        <div class="card">
+          <h3>Measurements (overlay / calipers, mm)</h3>
+          <p class="hint">
+            Enter VI, AHW, and TOD from your <strong>trusted measurement source</strong> (PACS overlay, workstation, or
+            manual read). Progression is computed from <strong>latest prior</strong> vs <strong>current</strong> only.
+          </p>
+          <label class="checkbox-row">
+            <input type="checkbox" id="includeProgression" checked />
+            <span>Include prior scan for progression (uncheck for current-only / first scan)</span>
+          </label>
+          <div class="scan-panels">
+            <div class="scan-panel" data-panel="prior">
+              <h4 class="scan-panel__title">Prior scan</h4>
+              <label for="dt-prior">Date / time</label>
+              <input type="datetime-local" id="dt-prior" data-scan-group="prior" />
+              <label for="vi-prior">VI (mm)</label>
+              <input type="number" id="vi-prior" data-scan-group="prior" step="0.1" min="0" />
+              <label for="ahw-prior">AHW (mm)</label>
+              <input type="number" id="ahw-prior" data-scan-group="prior" step="0.1" min="0" />
+              <label for="tod-prior">TOD (mm)</label>
+              <input type="number" id="tod-prior" data-scan-group="prior" step="0.1" min="0" />
+              <label for="pct-prior">VI percentile</label>
+              <input type="number" id="pct-prior" data-scan-group="prior" step="0.1" min="0" max="100" />
+            </div>
+            <div class="scan-panel scan-panel--current" data-panel="current">
+              <h4 class="scan-panel__title">Current scan</h4>
+              <label for="dt-current">Date / time</label>
+              <input type="datetime-local" id="dt-current" data-scan-group="current" />
+              <label for="vi-current">VI (mm)</label>
+              <input type="number" id="vi-current" data-scan-group="current" step="0.1" min="0" />
+              <label for="ahw-current">AHW (mm)</label>
+              <input type="number" id="ahw-current" data-scan-group="current" step="0.1" min="0" />
+              <label for="tod-current">TOD (mm)</label>
+              <input type="number" id="tod-current" data-scan-group="current" step="0.1" min="0" />
+              <label for="pct-current">VI percentile</label>
+              <input type="number" id="pct-current" data-scan-group="current" step="0.1" min="0" max="100" />
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Clinical modifier (0 / 1 / 2)</h3>
+          <p class="hint">Structured only — free text in notes is not scored. Future versions may use tiered sign groups.</p>
+          <fieldset class="clinical-radios">
+            <label class="radio-row">
+              <input type="radio" name="clinicalConcern" value="none" checked />
+              <span>None — no extra clinical concern</span>
+            </label>
+            <label class="radio-row">
+              <input type="radio" name="clinicalConcern" value="mild" />
+              <span>Mild — equivocal concern</span>
+            </label>
+            <label class="radio-row">
+              <input type="radio" name="clinicalConcern" value="clear" />
+              <span>Clear — definite concern (e.g. bulging fontanel, clear deterioration)</span>
+            </label>
+          </fieldset>
+          <label for="clinicalNotes">Clinical notes (free text — not scored)</label>
+          <textarea id="clinicalNotes" placeholder="IVH grade, context for handover…"></textarea>
+        </div>
+
+        <button type="button" class="primary" id="calcBtn">Update NumicFlow score</button>
+        <div id="errorBox" class="error-box" hidden></div>
+      </section>
+
+      <section class="column" data-region="score" aria-label="Score and risk tier">
+        <h2>Central hub &amp; risk tier</h2>
+        <div class="hub-wrap">
+          <div class="hub" id="hubCard" aria-live="polite">
+            <span class="label-sm">Central hub</span>
+            <span class="brand">NUMIC</span>
+            <span class="score-line">Score: <span id="totalScore">—</span></span>
+            <span class="version" id="scoreVersionOut"></span>
+          </div>
+
+          <div class="risk-list">
+            <div class="risk-item low" id="riskLow" data-tier="low">
+              <span class="dot low"></span>
+              <span><strong>Low risk</strong> — Score 0–3</span>
+            </div>
+            <div class="risk-item moderate" id="riskMod" data-tier="moderate">
+              <span class="dot moderate"></span>
+              <span><strong>Moderate risk</strong> — Score 4–7</span>
+            </div>
+            <div class="risk-item high" id="riskHigh" data-tier="high">
+              <span class="dot high"></span>
+              <span><strong>High risk</strong> — Score 8–14</span>
+            </div>
+          </div>
+
+          <details class="breakdown">
+            <summary>Score breakdown (JSON)</summary>
+            <pre id="breakdownPre">Run calculation to see static, progression, and clinical components.</pre>
+          </details>
+        </div>
+      </section>
+
+      <section class="column" data-region="actions" aria-label="Illustrative actions">
+        <h2>Illustrative actions (demo)</h2>
+        <div class="decision-card low" id="decLow">
+          <h4>Routine monitoring</h4>
+          <p>Standard follow-up per local pathway; document discussion.</p>
+        </div>
+        <div class="decision-card moderate" id="decMod">
+          <h4>Tighter surveillance / escalation awareness</h4>
+          <p>Shorten interval between assessments; senior review as your unit defines.</p>
+        </div>
+        <div class="decision-card high" id="decHigh">
+          <h4>Urgent escalation / neurosurgical involvement</h4>
+          <p>Per local protocol — this band is demo language only until governance approves wording.</p>
+        </div>
+        <p class="hint">Suggested actions mirror the demo risk band, not an approved care pathway.</p>
+      </section>
+    </div>
+
+    <footer class="site-footer">
+      <p>
+        <strong>Extensibility:</strong> This shell is static HTML + modular JS (<code>web/clinical-demo/js/</code>). A production UI
+        can swap in routing, auth, PACS context, and persistence while keeping the same scoring API contract.
+      </p>
+    </footer>
+
+    <script type="module" src="js/app.js"></script>
+  </body>
+</html>
