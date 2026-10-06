@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+.pytest_cache/
+.env
+.coverage
+htmlcov/
+*.egg-info/
+dist/
+build/
+docs/ScienceDirect_articles_23Apr2026_21-48-22.033.zip
