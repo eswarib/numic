@@ -4,6 +4,9 @@ Public demo of NumicFlow scoring for investors, accelerators and clinicians. It 
 (`docs/design/requirements/DEMO_public_demo.html`, v2): the real Python backend, the `numic_flow_levene` rule set,
 10 pre-loaded synthetic babies, and a private sandbox per visitor. **Synthetic data only.**
 
+Full details, including every setting, the PostgreSQL tables and the Railway configuration:
+[`docs/design/NUMIC_clinical_demo.html`](design/NUMIC_clinical_demo.html).
+
 ## Run it locally
 
 ```bash
@@ -68,6 +71,8 @@ access line (method, path, status); request bodies and the sandbox header are ne
    repository. `railway.json` sets the start command, `/health` check, one replica and no sleeping (DEMO-N05).
 2. In the service variables, reference the database: `DATABASE_URL=${{Postgres.DATABASE_URL}}` (the `postgres://`
    form is converted to `postgresql+asyncpg://` automatically).
+   Also set `NIXPACKS_PYTHON_VERSION=3.12` to pin Python (the project needs 3.11+). Keep one replica and one
+   uvicorn worker: the write limiter and the hourly clean-up job run in-process.
 3. Add the custom domain `demo.numic.uk` in Railway; at Namecheap add the **CNAME** record `demo` → the target
    Railway shows. Railway issues the certificate.
 4. On the Carrd site (numic.uk), point the demo button at `https://demo.numic.uk/`.

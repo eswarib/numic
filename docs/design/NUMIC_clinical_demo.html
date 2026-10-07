@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NUMIC Clinical Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: reading column with sticky index; settings tables and the deploy checklist are the main objects. */
+:root {
+  --bg: #f6f8f9; --surface: #ffffff; --ink: #14212b; --muted: #566672; --line: #d9e1e6;
+  --accent: #0b6e78; --accent-soft: #e2f1f2;
+  --rail: #5b4bb7; --rail-soft: #ece9f8;
+  --pg: #2563eb; --pg-soft: #e6eefe;
+  --warn: #a86a00; --warn-bg: #fbf0d9;
+  --crit: #b3261e; --crit-bg: #fbe5e3;
+  --ok: #2f7d4f; --ok-bg: #e5f3ea;
+  --code-bg: #eef3f5;
+  --f-display: "Newsreader", Georgia, "Times New Roman", serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f171c; --surface: #16222a; --ink: #e3eaee; --muted: #9aabb6; --line: #2a3a44;
+    --accent: #5cc3cc; --accent-soft: #173238; --rail: #a99cf0; --rail-soft: #25213d; --pg: #7aa2ff; --pg-soft: #1a2540;
+    --warn: #f0b64a; --warn-bg: #33280f; --crit: #f2837a; --crit-bg: #3a1a18; --ok: #6fcf91; --ok-bg: #16301f; --code-bg: #1b2a33;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f171c; --surface: #16222a; --ink: #e3eaee; --muted: #9aabb6; --line: #2a3a44;
+  --accent: #5cc3cc; --accent-soft: #173238; --rail: #a99cf0; --rail-soft: #25213d; --pg: #7aa2ff; --pg-soft: #1a2540;
+  --warn: #f0b64a; --warn-bg: #33280f; --crit: #f2837a; --crit-bg: #3a1a18; --ok: #6fcf91; --ok-bg: #16301f; --code-bg: #1b2a33;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 400 16px/1.6 var(--f-body); margin: 0; }
+.wrap { max-width: 1140px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 80px;
+  display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 52px; }
+nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; font-size: 13.5px; }
+nav.toc p { font: 500 11px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
+nav.toc ol { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+nav.toc a { color: var(--muted); text-decoration: none; }
+nav.toc a:hover, nav.toc a:focus-visible { color: var(--accent); }
+main { min-width: 0; }
+header.hero { padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+.eyebrow { font: 500 12px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 0 0 14px; }
+h1 { font: 600 clamp(32px, 5vw, 46px)/1.08 var(--f-display); margin: 0 0 14px; text-wrap: balance; letter-spacing: -.01em; }
+.lede { font-size: 18.5px; line-height: 1.55; max-width: 66ch; margin: 0; }
+.meta { margin-top: 14px; font-size: 13px; color: var(--muted); }
+.ver { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; font: 500 12px/1 var(--f-mono); }
+.ver .v { background: var(--accent); color: var(--surface); padding: 5px 9px; border-radius: 4px; }
+.ver .d { color: var(--muted); }
+.ver a { color: var(--accent); }
+section { padding-top: 42px; }
+h2 { font: 600 27px/1.2 var(--f-display); margin: 0 0 12px; text-wrap: balance; }
+h3 { font: 600 16px/1.3 var(--f-body); margin: 24px 0 8px; }
+p, li { max-width: 72ch; }
+p { margin: 0 0 12px; }
+ul, ol { padding-left: 20px; margin: 0 0 12px; }
+li { margin-bottom: 5px; }
+a { color: var(--accent); }
+code { font-family: var(--f-mono); font-size: .86em; background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+pre { font: 400 13px/1.6 var(--f-mono); background: var(--code-bg); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; overflow-x: auto; margin: 8px 0 14px; color: var(--ink); }
+pre code { background: none; padding: 0; font-size: inherit; }
+.muted { color: var(--muted); }
+.glance { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+.g { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; min-width: 0; }
+.g span { display: block; font: 500 11px/1.3 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.g b { font-size: 14.5px; font-weight: 500; overflow-wrap: anywhere; }
+.callout { border-left: 3px solid var(--c, var(--accent)); background: var(--cb, var(--accent-soft)); border-radius: 6px; padding: 12px 14px; margin: 12px 0 16px; max-width: 78ch; font-size: 15px; }
+.callout b { display: block; margin-bottom: 3px; }
+.callout.warn { --c: var(--warn); --cb: var(--warn-bg); }
+.callout.crit { --c: var(--crit); --cb: var(--crit-bg); }
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); margin-top: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 680px; }
+th, td { text-align: left; padding: 9px 13px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font: 500 11px/1.3 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); background: var(--bg); }
+td.k { font: 500 12.5px/1.45 var(--f-mono); overflow-wrap: anywhere; width: 30%; }
+td.v { font: 400 12.5px/1.45 var(--f-mono); overflow-wrap: anywhere; }
+.m { font: 500 11px/1 var(--f-mono); padding: 3px 6px; border-radius: 4px; background: var(--accent-soft); color: var(--accent); white-space: nowrap; }
+.flowmap { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 14px 0 6px; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--surface); }
+.flowmap > div { padding: 12px 14px; border-right: 1px solid var(--line); min-width: 0; }
+.flowmap > div:last-child { border-right: 0; }
+.flowmap .t { font: 500 11px/1.2 var(--f-mono); letter-spacing: .07em; text-transform: uppercase; color: var(--c); display: block; margin-bottom: 5px; }
+.flowmap b { display: block; font-size: 15px; margin-bottom: 4px; }
+.flowmap small { display: block; font-size: 13px; color: var(--muted); line-height: 1.45; }
+.fm-web { --c: var(--accent); } .fm-rail { --c: var(--rail); background: var(--rail-soft); } .fm-pg { --c: var(--pg); background: var(--pg-soft); }
+.steps { list-style: none; padding: 0; counter-reset: st; margin: 12px 0 16px; }
+.steps > li { counter-increment: st; position: relative; padding: 10px 0 12px 42px; border-top: 1px solid var(--line); margin: 0; max-width: none; }
+.steps > li::before { content: counter(st); position: absolute; left: 0; top: 11px; width: 28px; height: 28px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font: 500 13px/28px var(--f-mono); text-align: center; }
+.steps > li > b { display: block; margin-bottom: 3px; }
+.steps > li p, .steps > li ul { font-size: 15px; }
+.check { list-style: none; padding: 0; }
+.check li { position: relative; padding-left: 28px; }
+.check li::before { content: ""; position: absolute; left: 0; top: 4px; width: 15px; height: 15px; border: 2px solid var(--accent); border-radius: 3px; }
+.hist td.vn { font: 500 13px/1.4 var(--f-mono); white-space: nowrap; width: 64px; color: var(--accent); }
+.hist td.dt { font: 400 13px/1.4 var(--f-mono); white-space: nowrap; color: var(--muted); width: 110px; }
+footer { margin-top: 52px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 900px) {
+  .wrap { grid-template-columns: minmax(0, 1fr); gap: 0; padding-block: 28px 60px; padding-inline: 16px; }
+  nav.toc { display: none; }
+  .glance { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .flowmap { grid-template-columns: minmax(0, 1fr); }
+  .flowmap > div { border-right: 0; border-bottom: 1px solid var(--line); }
+  .flowmap > div:last-child { border-bottom: 0; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="toc" aria-label="Sections">
+    <p>Contents</p>
+    <ol>
+      <li><a href="#visitors">What visitors can do</a></li>
+      <li><a href="#how">How it works</a></li>
+      <li><a href="#api">Demo API</a></li>
+      <li><a href="#settings">Settings</a></li>
+      <li><a href="#postgres">PostgreSQL</a></li>
+      <li><a href="#railway">Railway</a></li>
+      <li><a href="#deploy">Deploy step by step</a></li>
+      <li><a href="#verify">After deploying</a></li>
+      <li><a href="#local">Run it locally</a></li>
+      <li><a href="#limits">Known limitations</a></li>
+      <li><a href="#launch">Before launch</a></li>
+      <li><a href="#history">Change history</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <p class="eyebrow">NUMIC · design documents</p>
+      <h1>NUMIC clinical demo</h1>
+      <p class="lede">The public demo of NumicFlow at demo.numic.uk: what it does, how it is built, every setting it reads, and how to run it on Railway with PostgreSQL. It implements the Public demo requirements (DEMO v2) on the branch <code>pr/clinicaldemo</code>.</p>
+      <p class="meta">Describes the code at commit <code>e553b5b</code> on <code>pr/clinicaldemo</code>. Start-up against PostgreSQL 16 was checked locally on 7 Oct 2026; the demo is not deployed yet.</p>
+      <div class="ver"><span class="v">Version 1</span><span class="d">7 Oct 2026</span><a href="#history">Change history</a></div>
+      <div class="glance">
+        <div class="g"><span>Address</span><b>demo.numic.uk</b></div>
+        <div class="g"><span>Hosting</span><b>Railway: 1 service + PostgreSQL</b></div>
+        <div class="g"><span>Rule set</span><b>numic_flow_levene@1</b></div>
+        <div class="g"><span>Data</span><b>Synthetic only, sandbox per visitor</b></div>
+      </div>
+    </header>
+
+    <section id="visitors">
+      <h2>What visitors can do</h2>
+      <ul>
+        <li><strong>See the baby list</strong>: 10 shared, read-only seed babies (<code>DEMO-0001</code> to <code>DEMO-0010</code>) plus any they added.</li>
+        <li><strong>Open a baby</strong>: trend charts of VI, AHW and TOD over age at scan, with the Levene 97th-centile line and the line + 4 mm for VI, and the fixed AHW and TOD cut-offs. Every scan shows its band, layer points, plain-language reasons and the rule revision <code>numic_flow_levene@1</code>.</li>
+        <li><strong>Add a baby</strong>: date of birth (synthetic, defaults to a week ago) and gestational age at birth in weeks and days. The patient ID (for example <code>DEMO-7K3Q</code>) is generated. There are no name, ID or free-text fields.</li>
+        <li><strong>Add a scan</strong> to any baby, including seed babies: date and time, VI left and right (the larger is scored), AHW, TOD and clinical concern. A scan added to a seed baby is visible only to that visitor.</li>
+        <li><strong>Delete</strong> babies or scans they added, or <strong>reset their sandbox</strong> to remove everything they added.</li>
+      </ul>
+      <p>Day of life and age at scan are worked out, never typed: age at scan = gestational age at birth + (scan date in Europe/London − date of birth) ÷ 7, with the day of birth as day 0.</p>
+      <div class="callout warn"><b>Levene values are provisional.</b> The Levene 97th-centile table in <code>src/numic/rule_sets/tables/levene_vi_p97.json</code> has <code>"verified": false</code>, and the demo shows a note saying so. The values must be replaced with ones read from Levene 1981 and checked by a clinician before launch.</div>
+    </section>
+
+    <section id="how">
+      <h2>How it works</h2>
+      <div class="flowmap" role="img" aria-label="Request path from numic.uk to the PostgreSQL database">
+        <div class="fm-web"><span class="t">Website</span><b>numic.uk</b><small>Carrd site. The demo button links to https://demo.numic.uk/</small></div>
+        <div class="fm-web"><span class="t">DNS</span><b>demo.numic.uk</b><small>CNAME at Namecheap to the Railway domain; Railway issues the certificate</small></div>
+        <div class="fm-rail"><span class="t">Railway service</span><b>FastAPI (uvicorn)</b><small>Serves the pages at <code>/clinical-demo/</code> and the API at <code>/api/v1</code> from one origin; <code>/</code> redirects to the demo</small></div>
+        <div class="fm-pg"><span class="t">Railway database</span><b>PostgreSQL</b><small>Three demo tables; reached over Railway's private network</small></div>
+      </div>
+
+      <h3>Code map</h3>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Piece</th><th>Where</th></tr></thead>
+        <tbody>
+          <tr><td>Rule set: thresholds, points, bands, revision</td><td><code>src/numic/rule_sets/numic_flow_levene.json</code></td></tr>
+          <tr><td>Levene VI 97th-centile table (provisional)</td><td><code>src/numic/rule_sets/tables/levene_vi_p97.json</code></td></tr>
+          <tr><td>Rule-set loader and validation</td><td><code>src/numic/scoring/rules/loader.py</code>, <code>bundles.py</code>, <code>models.py</code></td></tr>
+          <tr><td>Age at scan, reference-line lookup, out-of-range refusal</td><td><code>src/numic/scoring/nomogram/</code></td></tr>
+          <tr><td>Scoring a series of scans, plain-language reasons</td><td><code>src/numic/scoring/numic_flow.py</code></td></tr>
+          <tr><td>Demo API</td><td><code>src/numic/demo/router.py</code>, <code>schemas.py</code>, <code>service.py</code></td></tr>
+          <tr><td>Demo tables</td><td><code>src/numic/demo/models.py</code> (portable: PostgreSQL or SQLite)</td></tr>
+          <tr><td>Database engine and sessions</td><td><code>src/numic/demo/db.py</code></td></tr>
+          <tr><td>Seed babies and the maintenance job</td><td><code>src/numic/demo/seed_babies.json</code>, <code>src/numic/demo/seed.py</code></td></tr>
+          <tr><td>Start-up: create tables, seed, start the job, mount the pages</td><td><code>src/numic/main.py</code></td></tr>
+          <tr><td>Settings</td><td><code>src/numic/core/config.py</code></td></tr>
+          <tr><td>User interface</td><td><code>web/clinical-demo/</code>: <code>js/app.js</code> (views), <code>js/api.js</code> (sandbox header), <code>js/trend.js</code> (charts), <code>js/config.js</code> (display text)</td></tr>
+          <tr><td>Railway configuration</td><td><code>railway.json</code></td></tr>
+          <tr><td>Tests</td><td><code>tests/test_demo_sandbox.py</code>, <code>test_nomogram.py</code>, <code>test_scoring.py</code> and others (57 passing)</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Sandboxes</h3>
+      <ul>
+        <li>The browser keeps a random token in <code>localStorage</code> and sends it in the <code>X-Demo-Sandbox</code> header. A header rather than a cookie keeps the demo working inside an embedded frame, where browsers often block cookies.</li>
+        <li>A request without a valid token gets a new sandbox, and the token comes back in the <code>X-Demo-Sandbox</code> response header. A visitor is never given another visitor's sandbox.</li>
+        <li>Seed rows have <code>sandbox_id = NULL</code>; rows a visitor adds carry their sandbox ID. Every query returns seed rows plus the current sandbox's rows. Deleting a seed baby or seed scan returns 403.</li>
+        <li><code>last_seen_at</code> is refreshed at most every 5 minutes, which keeps database writes low.</li>
+      </ul>
+
+      <h3>Seed babies</h3>
+      <ul>
+        <li>Stored as "born N days ago, scanned on day k at HH:MM" and re-dated on start-up and whenever the day changes, so ages stay realistic on any date. Visitor scans on seed babies move with them.</li>
+        <li>The spread is 6 low, 2 moderate and 2 high. <code>DEMO-0004</code> has only a first scan. <code>DEMO-0009</code>'s first scan (24+5 weeks) is outside the Levene chart and shows "Not scored" instead of a guessed line. <code>tests/test_demo_sandbox.py</code> checks this.</li>
+        <li>These bands were set against the provisional Levene values. They may shift once the real values are loaded, and the seed should be re-checked then.</li>
+      </ul>
+    </section>
+
+    <section id="api">
+      <h2>Demo API</h2>
+      <p>All demo endpoints take the <code>X-Demo-Sandbox</code> request header. Requests that change data count towards the write limit.</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Method</th><th>Path</th><th>What it does</th><th>Write limit</th></tr></thead>
+        <tbody>
+          <tr><td><span class="m">GET</span></td><td><code>/api/v1/demo/babies</code></td><td>Seed babies plus the visitor's, with each baby's latest band</td><td>No</td></tr>
+          <tr><td><span class="m">POST</span></td><td><code>/api/v1/demo/babies</code></td><td>Add a baby (date of birth, gestational age weeks and days); returns 201 with the generated ID</td><td>Yes</td></tr>
+          <tr><td><span class="m">GET</span></td><td><code>/api/v1/demo/babies/{baby_id}</code></td><td>One baby with all visible scans, each scored, and the chart data</td><td>No</td></tr>
+          <tr><td><span class="m">DELETE</span></td><td><code>/api/v1/demo/babies/{baby_id}</code></td><td>Delete a baby the visitor added; 403 for seed babies</td><td>Yes</td></tr>
+          <tr><td><span class="m">POST</span></td><td><code>/api/v1/demo/babies/{baby_id}/scans</code></td><td>Add a scan; returns 201</td><td>Yes</td></tr>
+          <tr><td><span class="m">DELETE</span></td><td><code>/api/v1/demo/babies/{baby_id}/scans/{scan_id}</code></td><td>Delete a scan the visitor added; 403 for seed scans</td><td>Yes</td></tr>
+          <tr><td><span class="m">POST</span></td><td><code>/api/v1/demo/sandbox/reset</code></td><td>Remove everything the visitor added; returns 204</td><td>Yes</td></tr>
+          <tr><td><span class="m">GET</span></td><td><code>/health</code></td><td>Health check used by Railway</td><td>No</td></tr>
+        </tbody>
+      </table></div>
+      <p>Errors: <strong>404</strong> for a baby or scan not visible to the visitor; <strong>403</strong> for changing seed data; <strong>422</strong> for invalid input: a date of birth in the future or more than a year ago, gestational age outside 22+0 to 42+6 weeks, a scan before the birth or in the future, VI, AHW or TOD outside 0–40 mm (TOD 0–60 mm), or any unknown field; <strong>429</strong> when a limit is reached, with a message naming the limit; <strong>503</strong> if the database is unavailable.</p>
+      <p class="muted">The stateless scoring endpoints (<code>/api/v1/score/...</code>) and the older <code>/api/v1/demo/numic-flow-from-record</code> are also served. The full schema is at <code>/docs</code>.</p>
+    </section>
+
+    <section id="settings">
+      <h2>Settings</h2>
+      <p>All settings are environment variables with the <code>NUMIC_</code> prefix, read by <code>src/numic/core/config.py</code>. The database URL also accepts <code>DATABASE_URL</code> without the prefix, which is what Railway provides. Clinical thresholds are never settings: they live in the rule-set file.</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Variable</th><th>Default</th><th>On Railway</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td class="k">DATABASE_URL (or NUMIC_DATABASE_URL)</td><td class="v">sqlite+aiosqlite:///./numic-demo.db</td><td class="v">${{Postgres.DATABASE_URL}}</td><td>Database connection. <code>postgres://</code> and <code>postgresql://</code> are converted to <code>postgresql+asyncpg://</code> automatically. If both names are set, <code>NUMIC_DATABASE_URL</code> wins.</td></tr>
+          <tr><td class="k">NUMIC_DATABASE_ECHO</td><td class="v">false</td><td class="v">leave unset</td><td>Log every SQL statement. For debugging only.</td></tr>
+          <tr><td class="k">NUMIC_DEFAULT_SCORE_VERSION</td><td class="v">numic_flow_levene</td><td class="v">leave unset</td><td>Rule set used when a request names none.</td></tr>
+          <tr><td class="k">NUMIC_ENABLED_SCORE_VERSIONS</td><td class="v">["numic_flow_levene"]</td><td class="v">leave unset</td><td>Rule sets this deployment offers. JSON list syntax.</td></tr>
+          <tr><td class="k">NUMIC_SCAN_DAY_TIMEZONE</td><td class="v">Europe/London</td><td class="v">leave unset</td><td>Time zone that decides a scan's calendar day for day of life, and when the seed is re-dated.</td></tr>
+          <tr><td class="k">NUMIC_DEMO_ENABLED</td><td class="v">true</td><td class="v">leave unset</td><td>Serve the demo API, create the demo tables and run the maintenance job.</td></tr>
+          <tr><td class="k">NUMIC_DEMO_SANDBOX_TTL_DAYS</td><td class="v">7</td><td class="v">leave unset</td><td>Sandboxes unused for this many days are deleted with their data.</td></tr>
+          <tr><td class="k">NUMIC_DEMO_MAX_BABIES_PER_SANDBOX</td><td class="v">20</td><td class="v">leave unset</td><td>Babies a visitor can add.</td></tr>
+          <tr><td class="k">NUMIC_DEMO_MAX_SCANS_PER_BABY</td><td class="v">30</td><td class="v">leave unset</td><td>Scans per baby within one sandbox.</td></tr>
+          <tr><td class="k">NUMIC_DEMO_WRITES_PER_MINUTE</td><td class="v">60</td><td class="v">leave unset</td><td>Changes per minute per client IP address.</td></tr>
+          <tr><td class="k">NUMIC_DEMO_MAINTENANCE_INTERVAL_SECONDS</td><td class="v">3600</td><td class="v">leave unset</td><td>How often the clean-up job runs. It also re-dates the seed babies when the day changes.</td></tr>
+          <tr><td class="k">PORT</td><td class="v">—</td><td class="v">set by Railway</td><td>Port uvicorn listens on; used by the start command.</td></tr>
+          <tr><td class="k">NIXPACKS_PYTHON_VERSION</td><td class="v">—</td><td class="v">3.12 (recommended)</td><td>Pins the Python version Railway's Nixpacks builder installs. The project needs Python 3.11 or newer.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="postgres">
+      <h2>PostgreSQL</h2>
+      <h3>Database service</h3>
+      <ul>
+        <li>Add Railway's <strong>PostgreSQL</strong> database to the demo project. It runs in the same project as the app, so the app reaches it over Railway's private network.</li>
+        <li>Railway gives the database two connection strings. <code>DATABASE_URL</code> uses the private network and is the one the app should use. <code>DATABASE_PUBLIC_URL</code> goes through a public proxy and is only for connecting from your own computer.</li>
+        <li>In the app service, set <code>DATABASE_URL=${{Postgres.DATABASE_URL}}</code>. This is a reference variable, so it follows the database if its credentials change. Use the database service's actual name if it isn't called <code>Postgres</code>.</li>
+        <li>The driver is <strong>asyncpg</strong>. The app converts Railway's <code>postgresql://</code> URL to <code>postgresql+asyncpg://</code>, so the URL needs no editing.</li>
+      </ul>
+
+      <h3>Tables</h3>
+      <p>Created automatically on start-up with SQLAlchemy <code>create_all</code>. There are no migrations, because the demo only holds synthetic data.</p>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Table</th><th>Columns</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="k">demo_sandboxes</td><td class="v">id (token, PK), created_at, last_seen_at (indexed)</td><td>One row per visitor.</td></tr>
+          <tr><td class="k">demo_babies</td><td class="v">id (patient ID, PK), sandbox_id (FK, cascade, NULL for seed), date_of_birth, ga_weeks, ga_days, seed_born_days_ago, created_at</td><td>10 seed rows plus visitor rows.</td></tr>
+          <tr><td class="k">demo_scans</td><td class="v">id (PK), baby_id (FK, cascade), sandbox_id (FK, cascade, NULL for seed), measured_at, vi_left_mm, vi_right_mm, ahw_mm, tod_mm, clinical_concern, created_at</td><td>24 seed rows plus visitor rows.</td></tr>
+        </tbody>
+      </table></div>
+      <p>Deleting a sandbox deletes its babies and scans through the foreign-key cascades. The database stays tiny: each sandbox is capped at 20 babies with 30 scans each.</p>
+
+      <h3>Lifecycle</h3>
+      <ul>
+        <li><strong>Start-up</strong>: create any missing tables, load or re-date the seed babies for today, delete expired sandboxes, then start the hourly job.</li>
+        <li><strong>Every hour</strong>: delete sandboxes unused for 7 days, and re-date the seed if the day has changed in Europe/London.</li>
+        <li><strong>Backups</strong>: not needed for synthetic data. Losing the database only loses visitors' sandboxes; the seed is rebuilt on start-up.</li>
+      </ul>
+
+      <h3>Changing the tables later</h3>
+      <div class="callout warn"><b><code>create_all</code> only creates missing tables; it never changes existing ones.</b> If a later change edits <code>src/numic/demo/models.py</code>, drop the three demo tables and restart the service so they are recreated. Visitors' sandboxes are lost, which is acceptable for synthetic data. The clinical system will need real migrations (Alembic).</div>
+<pre><code>DROP TABLE IF EXISTS demo_scans, demo_babies, demo_sandboxes;</code></pre>
+
+      <h3>Looking at the data</h3>
+<pre><code># With the Railway CLI, from the linked project
+railway connect Postgres
+
+# Or with psql and the database's DATABASE_PUBLIC_URL
+psql "$DATABASE_PUBLIC_URL"
+
+-- then, for example
+SELECT count(*) AS sandboxes FROM demo_sandboxes;
+SELECT count(*) AS visitor_babies FROM demo_babies WHERE sandbox_id IS NOT NULL;</code></pre>
+    </section>
+
+    <section id="railway">
+      <h2>Railway</h2>
+      <p><code>railway.json</code> at the repository root holds the service settings, so they are versioned with the code:</p>
+<pre><code>{
+  "$schema": "https://railway.com/railway.schema.json",
+  "build": { "builder": "NIXPACKS" },
+  "deploy": {
+    "startCommand": "uvicorn numic.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips '*'",
+    "healthcheckPath": "/health",
+    "healthcheckTimeout": 60,
+    "restartPolicyType": "ON_FAILURE",
+    "numReplicas": 1,
+    "sleepApplication": false
+  }
+}</code></pre>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Setting</th><th>Why</th></tr></thead>
+        <tbody>
+          <tr><td class="k">builder: NIXPACKS</td><td>Detects <code>pyproject.toml</code> and installs the package. The rule-set and seed JSON files are inside the package (checked: the built wheel contains all three), and the pages are found from the working directory, so a normal install works.</td></tr>
+          <tr><td class="k">startCommand</td><td>Runs uvicorn on Railway's <code>$PORT</code>. <code>--proxy-headers</code> makes the app see the client address forwarded by Railway's proxy. Use a single uvicorn process (no <code>--workers</code>).</td></tr>
+          <tr><td class="k">healthcheckPath: /health</td><td>Railway waits for a 200 from <code>/health</code> before switching traffic to a new deployment. The tables and seed are ready by then, because start-up does them first.</td></tr>
+          <tr><td class="k">restartPolicyType: ON_FAILURE</td><td>Restarts the service if it crashes.</td></tr>
+          <tr><td class="k">numReplicas: 1</td><td>Required. The write-rate limiter and the maintenance job run inside the process, so a second replica would double the limits and run the job twice.</td></tr>
+          <tr><td class="k">sleepApplication: false</td><td>Keeps the service running so the first visitor of the day doesn't wait for a cold start (DEMO-N05).</td></tr>
+        </tbody>
+      </table></div>
+      <p class="muted">Railway's newer builder, Railpack, could replace Nixpacks later. Check Railway's current plans and prices before choosing one; an always-on service and a small database are needed.</p>
+    </section>
+
+    <section id="deploy">
+      <h2>Deploy step by step</h2>
+      <ol class="steps">
+        <li><b>Create a separate Railway project for the demo</b><p>Keep it apart from anything clinical (DEMO-N02). Name it, for example, <code>numic-demo</code>.</p></li>
+        <li><b>Add PostgreSQL</b><p>In the project, add a PostgreSQL database. Keep the default service name <code>Postgres</code>, or note the name you choose.</p></li>
+        <li><b>Add the app service from GitHub</b><p>Create a service from the <code>eswarib/numic</code> repository. Set the deploy branch to <code>pr/clinicaldemo</code> for now, and to <code>main</code> once the pull request is merged.</p></li>
+        <li><b>Set the variables on the app service</b>
+<pre><code>DATABASE_URL=${{Postgres.DATABASE_URL}}
+NIXPACKS_PYTHON_VERSION=3.12</code></pre>
+          <p>Leave every <code>NUMIC_*</code> setting at its default unless you want different limits.</p></li>
+        <li><b>Deploy</b><p>Railway builds with Nixpacks and starts the command from <code>railway.json</code>. In the deploy logs, check that the build installed the package and that uvicorn reports it is running.</p></li>
+        <li><b>Try the Railway address</b><p>Open the generated <code>*.up.railway.app</code> address. It should redirect to <code>/clinical-demo/</code> and show the 10 seed babies.</p></li>
+        <li><b>Add the custom domain</b><p>In the app service's networking settings, add <code>demo.numic.uk</code>. Railway shows a CNAME target.</p></li>
+        <li><b>Add the DNS record at Namecheap</b><p>In Advanced DNS for numic.uk, add a <strong>CNAME</strong> record with host <code>demo</code> and the target Railway showed. Railway issues the HTTPS certificate once DNS resolves.</p></li>
+        <li><b>Link from numic.uk</b><p>On the Carrd site, point the demo button at <code>https://demo.numic.uk/</code>. A link to the full page works better on phones than an embedded frame.</p></li>
+      </ol>
+    </section>
+
+    <section id="verify">
+      <h2>After deploying</h2>
+      <ul class="check">
+        <li><code>https://demo.numic.uk/health</code> returns <code>{"status":"ok"}</code>.</li>
+        <li><code>https://demo.numic.uk/</code> opens the demo with the disclaimer banner and the provisional-values note.</li>
+        <li>The list shows <code>DEMO-0001</code> to <code>DEMO-0010</code>; <code>DEMO-0009</code>'s first scan shows "Not scored".</li>
+        <li>Add a baby: a generated <code>DEMO-xxxx</code> ID appears. Add a scan to a seed baby.</li>
+        <li>In a private window (a second visitor), the added baby and scan are not visible.</li>
+        <li>Reset the sandbox in the first window: only the 10 seed babies remain.</li>
+        <li>The deploy logs show request lines but no measurement values or sandbox tokens.</li>
+      </ul>
+      <p class="muted">The same checks were run locally against a PostgreSQL 16 container on 7 Oct 2026 using a <code>postgres://</code> URL: the three tables were created, 10 seed babies and 24 seed scans loaded, a sandbox token issued, a visitor baby added (201) and removed by reset (204).</p>
+    </section>
+
+    <section id="local">
+      <h2>Run it locally</h2>
+<pre><code>python3 -m venv .venv
+source .venv/bin/activate
+pip install -e '.[dev]'
+uvicorn numic.main:app --reload --host 127.0.0.1 --port 8000</code></pre>
+      <p>Open <code>http://127.0.0.1:8000/</code>. With no database configured, the demo uses a local SQLite file, <code>numic-demo.db</code>. Other useful addresses: <code>/health</code> and <code>/docs</code>. Run the tests with <code>pytest</code>.</p>
+      <h3>Locally with PostgreSQL</h3>
+<pre><code>docker run -d --rm --name numic-pg -e POSTGRES_PASSWORD=demo -e POSTGRES_DB=numic -p 5432:5432 postgres:16-alpine
+DATABASE_URL=postgres://postgres:demo@127.0.0.1:5432/numic uvicorn numic.main:app --reload</code></pre>
+    </section>
+
+    <section id="limits">
+      <h2>Known limitations</h2>
+      <ul>
+        <li><strong>One process only.</strong> The write limiter and the maintenance job live in memory, so the service must run as one replica with one uvicorn worker.</li>
+        <li><strong>The write limit is best-effort.</strong> It counts per client IP taken from <code>X-Forwarded-For</code>, which a client can influence. It stops casual misuse, not a determined attacker.</li>
+        <li><strong>No migrations.</strong> Changing the demo tables means dropping them (see PostgreSQL).</li>
+        <li><strong>Provisional Levene values.</strong> Bands and seed spreads may change when the real values are loaded.</li>
+        <li><strong>Brouwer is not included yet.</strong> It needs its tables and 2-point rules first.</li>
+        <li><strong>The older demo endpoint</strong> <code>/api/v1/demo/numic-flow-from-record</code> is still served; the new UI doesn't use it.</li>
+      </ul>
+    </section>
+
+    <section id="launch">
+      <h2>Before launch</h2>
+      <ul class="check">
+        <li><strong>Blocker:</strong> replace the provisional Levene 97th-centile values with values read from Levene 1981, have a clinician check them, and set <code>"verified": true</code>. The provisional-values note then disappears.</li>
+        <li>Clinician review of the seed babies' scan histories, and a re-check of the band spread with the real values.</li>
+        <li>Confirm sandbox retention (7 days) and the limits (20 babies, 30 scans, 60 changes a minute).</li>
+        <li>Choose the Railway plan, and decide whether to link from numic.uk or embed.</li>
+        <li>Merge <code>pr/clinicaldemo</code> into <code>main</code>, then switch the Railway deploy branch to <code>main</code>.</li>
+      </ul>
+    </section>
+
+    <section id="history">
+      <h2>Change history</h2>
+      <div class="tablewrap hist"><table>
+        <thead><tr><th>Version</th><th>Date</th><th>Changes</th></tr></thead>
+        <tbody><tr><td class="vn">v1</td><td class="dt">7 Oct 2026</td><td><b>First version</b>: visitor features, how it works, demo API, settings, PostgreSQL, Railway configuration, deployment steps, checks, local runs, limitations and launch list.</td></tr></tbody>
+      </table></div>
+    </section>
+
+    <footer>NUMIC clinical demo · version 1. Demonstration with synthetic data only; not for patient care and not regulatory or clinical guidance.</footer>
+  </main>
+</div>
+</body>
+</html>
