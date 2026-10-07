@@ -1,26 +1,27 @@
 /**
- * Demo UI configuration — extend for production:
- * - Set `api.basePath` from a build-time or runtime env (same origin vs dedicated API host).
- * - Add `auth.getHeaders()` and wrap `fetch` in api.js when you have OIDC / API keys.
- * - Flip `features.*` as measurement pipelines (PACS, auto-segmentation) come online.
+ * Demo UI configuration (display only — never changes a score; thresholds live in the backend rule-set file).
  */
 export const CONFIG = {
   api: {
     basePath: "/api/v1",
-    get scoreVersions() {
-      return `${this.basePath}/score/versions`;
-    },
-    get demoNumicFlowFromRecord() {
-      return `${this.basePath}/demo/numic-flow-from-record`;
-    },
   },
-  /** Matches `PatientMeasurementRecord.entry_source` — demo assumes trusted mm from overlay / workstation. */
-  measurement: {
-    entrySource: "overlay",
-    measuredBy: "clinical-demo-ui",
+  /** Sandbox token header; a header (not a cookie) so the demo also works inside an embedded frame. */
+  sandbox: {
+    header: "X-Demo-Sandbox",
+    storageKey: "numic-demo-sandbox",
   },
-  features: {
-    /** Pixel-to-mm is not part of the clinical demo story; keep off until a model + governance ship. */
-    experimentalImageUpload: false,
+  /** Neutral band wording: describes the band, gives no clinical instructions (DEMO-F13). */
+  bands: {
+    low: { label: "Low", text: "Lower-risk band" },
+    moderate: { label: "Moderate", text: "Intermediate-risk band" },
+    high: { label: "High", text: "Higher-risk band" },
   },
+  concern: {
+    none: "None",
+    mild: "Mild",
+    clear: "Clear",
+  },
+  /** Default date of birth for a new synthetic baby: this many days before today. */
+  newBabyDefaultAgeDays: 7,
+  timeZone: "Europe/London",
 };

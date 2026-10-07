@@ -3,208 +3,36 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>NUMIC — Clinical decision support (demo)</title>
+    <meta name="robots" content="noindex" />
+    <title>NUMIC Demo</title>
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <div class="banner" role="banner">
-      <strong>Clinical demonstration only.</strong>
-      Not for patient care. Illustrative decision support — not an approved care pathway.
+    <div class="disclaimer" role="note" id="disclaimer">
+      <strong>Synthetic data only.</strong> Not for patient care. Do not enter real patient details.
     </div>
 
     <header class="site-header">
-      <h1>NUMIC Clinical Decision Support</h1>
-      <p class="subtitle">Neonatal cUS — PHVD framing (demo)</p>
+      <a class="brand" href="#/">
+        <span class="brand__name">NUMIC</span>
+        <span class="brand__sub">PHVD decision-support demo</span>
+      </a>
+      <div class="site-header__actions">
+        <span class="rule-chip" id="ruleSet" title="Rule set used for every result"></span>
+        <button type="button" class="btn btn--ghost" id="resetBtn">Reset my sandbox</button>
+      </div>
     </header>
 
-    <main class="dashboard" aria-label="Assessment workspace">
-      <section class="top-row" aria-label="Patient context and risk score">
-        <div class="card card--compact patient-context">
-          <h3>Patient context</h3>
-          <div class="patient-fields">
-            <div>
-              <label for="externalRef">Demo patient ID</label>
-              <input id="externalRef" type="text" value="DEMO-001" autocomplete="off" />
-            </div>
-            <div>
-              <label for="gaWeeks">Gestational age (weeks)</label>
-              <input id="gaWeeks" type="number" step="0.1" value="28" min="10" max="45" />
-            </div>
-            <div>
-              <label for="viP97Ref">VI ref. at elevated percentile (mm)</label>
-              <input id="viP97Ref" type="number" step="0.1" value="12" />
-            </div>
-          </div>
-        </div>
+    <div class="toast" id="toast" role="alert" hidden></div>
 
-        <div class="score-panel" aria-label="Score and risk tier">
-          <div class="hub" id="hubCard" aria-live="polite">
-            <span class="label-sm">Central hub</span>
-            <span class="brand">NUMIC</span>
-            <span class="score-line">Score: <span id="totalScore">—</span></span>
-            <span class="version" id="scoreVersionOut"></span>
-          </div>
-
-          <div class="risk-list">
-            <div class="risk-item low" id="riskLow" data-tier="low">
-              <span class="dot low"></span>
-              <span><strong>Low</strong> 0–3</span>
-            </div>
-            <div class="risk-item moderate" id="riskMod" data-tier="moderate">
-              <span class="dot moderate"></span>
-              <span><strong>Moderate</strong> 4–7</span>
-            </div>
-            <div class="risk-item high" id="riskHigh" data-tier="high">
-              <span class="dot high"></span>
-              <span><strong>High</strong> 8–14</span>
-            </div>
-          </div>
-
-          <div class="active-decision low" id="decLow" data-tier="low">
-            <h4>Routine monitoring</h4>
-            <p>Standard follow-up per local pathway.</p>
-          </div>
-          <div class="active-decision moderate" id="decMod" data-tier="moderate">
-            <h4>Tighter surveillance</h4>
-            <p>Shorten interval; senior review as your unit defines.</p>
-          </div>
-          <div class="active-decision high" id="decHigh" data-tier="high">
-            <h4>Urgent escalation</h4>
-            <p>Per local protocol — demo language only.</p>
-          </div>
-
-          <details class="breakdown">
-            <summary>Score breakdown (JSON)</summary>
-            <pre id="breakdownPre">Run calculation to see static, progression, and clinical components.</pre>
-          </details>
-        </div>
-      </section>
-
-      <section class="main-row" aria-label="Measurements and clinical modifier">
-        <div class="card card--measurements">
-          <div class="card-head">
-            <h3>Measurements (overlay / calipers, mm)</h3>
-            <label class="checkbox-row">
-              <input type="checkbox" id="includeProgression" checked />
-              <span>Include prior scan</span>
-            </label>
-          </div>
-          <div class="scan-panels">
-            <div class="scan-panel" data-panel="prior">
-              <h4 class="scan-panel__title">Prior scan</h4>
-              <div class="field-grid">
-                <div>
-                  <label for="dt-prior">Date / time</label>
-                  <input type="datetime-local" id="dt-prior" data-scan-group="prior" />
-                </div>
-                <div>
-                  <label for="vi-prior">VI (mm)</label>
-                  <input type="number" id="vi-prior" data-scan-group="prior" step="0.1" min="0" />
-                </div>
-                <div>
-                  <label for="ahw-prior">AHW (mm)</label>
-                  <input type="number" id="ahw-prior" data-scan-group="prior" step="0.1" min="0" />
-                </div>
-                <div>
-                  <label for="tod-prior">TOD (mm)</label>
-                  <input type="number" id="tod-prior" data-scan-group="prior" step="0.1" min="0" />
-                </div>
-                <div>
-                  <label for="pct-prior">VI percentile</label>
-                  <input type="number" id="pct-prior" data-scan-group="prior" step="0.1" min="0" max="100" />
-                </div>
-              </div>
-            </div>
-            <div class="scan-panel scan-panel--current" data-panel="current">
-              <h4 class="scan-panel__title">Current scan</h4>
-              <div class="field-grid">
-                <div>
-                  <label for="dt-current">Date / time</label>
-                  <input type="datetime-local" id="dt-current" data-scan-group="current" />
-                </div>
-                <div>
-                  <label for="vi-current">VI (mm)</label>
-                  <input type="number" id="vi-current" data-scan-group="current" step="0.1" min="0" />
-                </div>
-                <div>
-                  <label for="ahw-current">AHW (mm)</label>
-                  <input type="number" id="ahw-current" data-scan-group="current" step="0.1" min="0" />
-                </div>
-                <div>
-                  <label for="tod-current">TOD (mm)</label>
-                  <input type="number" id="tod-current" data-scan-group="current" step="0.1" min="0" />
-                </div>
-                <div>
-                  <label for="pct-current">VI percentile</label>
-                  <input type="number" id="pct-current" data-scan-group="current" step="0.1" min="0" max="100" />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="trend-block" aria-label="Measurement trend">
-            <div class="trend-head">
-              <h4 class="trend-title">Trend across scans</h4>
-              <ul class="trend-legend" aria-hidden="true">
-                <li><span class="swatch" style="--swatch:#2563eb"></span>VI</li>
-                <li><span class="swatch" style="--swatch:#0d9488"></span>AHW</li>
-                <li><span class="swatch" style="--swatch:#c2410c"></span>TOD</li>
-              </ul>
-            </div>
-            <div class="trend-chart-wrap">
-              <p id="trendEmpty" class="trend-empty">Enter VI, AHW, and TOD to plot the trend.</p>
-              <div id="trendChart" class="trend-chart"></div>
-            </div>
-          </div>
-        </div>
-
-        <div class="card card--clinical">
-          <h3>Clinical modifier (0 / 1 / 2)</h3>
-          <fieldset class="clinical-radios">
-            <label class="radio-row">
-              <input type="radio" name="clinicalConcern" value="none" checked />
-              <span>None — no extra clinical concern</span>
-            </label>
-            <label class="radio-row">
-              <input type="radio" name="clinicalConcern" value="mild" />
-              <span>Mild — equivocal concern</span>
-            </label>
-            <label class="radio-row">
-              <input type="radio" name="clinicalConcern" value="clear" />
-              <span>Clear — definite concern</span>
-            </label>
-          </fieldset>
-          <label for="clinicalNotes">Clinical notes (not scored)</label>
-          <textarea id="clinicalNotes" placeholder="IVH grade, context for handover…" rows="3"></textarea>
-        </div>
-      </section>
-
-      <section class="bottom-row" aria-label="Rule bundle and actions">
-        <div class="card card--compact scenario-bar">
-          <h3>Rule bundle &amp; demo scenario</h3>
-          <div class="scenario-fields">
-            <div>
-              <label for="scoreVersion">Score version</label>
-              <select id="scoreVersion"></select>
-            </div>
-            <div>
-              <label for="scenarioPreset">Example prior + current</label>
-              <select id="scenarioPreset">
-                <option value="">— Custom —</option>
-                <option value="low">Low risk</option>
-                <option value="moderate">Moderate risk</option>
-                <option value="high">High risk</option>
-              </select>
-            </div>
-          </div>
-        </div>
-
-        <div class="action-bar">
-          <button type="button" class="primary" id="calcBtn">Update NumicFlow score</button>
-          <div id="errorBox" class="error-box" hidden></div>
-        </div>
-      </section>
+    <main class="page" id="app" aria-live="polite">
+      <p class="loading">Loading demo…</p>
     </main>
+
+    <footer class="site-footer">
+      Scores use the NumicFlow <code>numic_flow_levene</code> rule set on the NUMIC backend. Your additions are
+      private to this browser and are deleted after 7 days without use. Design demonstration, not a medical device.
+    </footer>
 
     <script type="module" src="js/app.js"></script>
   </body>

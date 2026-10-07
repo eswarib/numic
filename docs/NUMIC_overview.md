@@ -34,7 +34,7 @@ NUMIC is intended to **support** that gap: a **structured, reproducible summary*
 | Layer | Role |
 |--------|------|
 | **Measurement capture** | Accept VI, AHW, TOD (and related fields) from **PACS/overlay pipelines**, **image‑derived tools**, **manual/GUI entry**, or **bulk import** — with **patient identity**, **date/time of study**, **who measured**, and **clinical notes** where available. |
-| **NumicFlow scoring** | **Static** score from current size vs thresholds; **progression** score from change vs a prior timepoint; **clinical modifier** from structured concern level (e.g. fontanel / systemic signs), with rules **versioned** (e.g. `numic_flow_v1`) so outputs remain interpretable when policies evolve. |
+| **NumicFlow scoring** | **Static** score from current size vs thresholds; **progression** score from change vs a prior timepoint; **clinical modifier** from structured concern level (e.g. fontanel / systemic signs), with rules **versioned** (e.g. `numic_flow_levene@1`) so outputs remain interpretable when policies evolve. |
 | **Risk tier** | Map total score to **low / moderate / high** bands with **plain‑language suggested actions** (aligned to published pathways — scan frequency, escalation, neurosurgical awareness). |
 | **Presentation** | Eventually: **clinician‑facing UI** (not raw API JSON) — patient context, numbers, trajectory plot, score breakdown, rule version, and export for records. |
 
