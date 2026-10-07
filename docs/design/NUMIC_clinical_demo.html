@@ -302,7 +302,7 @@ SELECT count(*) AS visitor_babies FROM demo_babies WHERE sandbox_id IS NOT NULL;
   "$schema": "https://railway.com/railway.schema.json",
   "build": { "builder": "NIXPACKS" },
   "deploy": {
-    "startCommand": "uvicorn numic.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips '*'",
+    "startCommand": "uvicorn --app-dir src numic.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips '*'",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 60,
     "restartPolicyType": "ON_FAILURE",
