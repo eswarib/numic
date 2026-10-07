@@ -13,8 +13,6 @@ def patient_measurement_record_from_manual(req: ManualMeasurementRequest) -> Pat
         context=req.context,
         measurements=VentricularMeasurements(
             vi_mm=req.vi_mm,
-            vi_percentile=req.vi_percentile,
-            vi_p97_reference_mm=req.vi_p97_reference_mm,
             ahw_mm=req.ahw_mm,
             tod_mm=req.tod_mm,
         ),

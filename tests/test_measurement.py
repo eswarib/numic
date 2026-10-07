@@ -30,11 +30,10 @@ def test_coronal_landmarks_to_measurements() -> None:
         vi_vent_right_row=0.0,
         vi_vent_right_col=4.0,
     )
-    m = measurements_from_coronal_landmarks(lm, 1.0, 1.0, vi_percentile=50.0)
+    m = measurements_from_coronal_landmarks(lm, 1.0, 1.0)
     assert m.ahw_mm == 10.0
     assert m.tod_mm == 5.0
     assert m.vi_mm == 4.0
-    assert m.vi_percentile == 50.0
 
 
 def test_from_image_returns_422_until_extractor_configured() -> None:

@@ -11,9 +11,9 @@ from numic.measurement.tabular_import import import_measurements_from_tabular
 
 def test_import_csv_basic() -> None:
     csv_text = (
-        "mrn,measured_at,measured_by,clinical_notes,vi,ahw,tod,vi_percentile\n"
-        "P001,2025-04-14T10:00:00,dr_a,note one,8,6,24,90\n"
-        "P002,2025-04-15T11:00:00,,,9,7,26,\n"
+        "mrn,measured_at,measured_by,clinical_notes,vi,ahw,tod,dob,ga_weeks,ga_days\n"
+        "P001,2025-04-14T10:00:00,dr_a,note one,8,6,24,2025-04-01,27,3\n"
+        "P002,2025-04-15T11:00:00,,,9,7,26,,,\n"
     )
     r = import_measurements_from_tabular(csv_text.encode("utf-8"), "batch.csv")
     assert len(r.rows) == 2
@@ -21,8 +21,10 @@ def test_import_csv_basic() -> None:
     assert r.rows[0].context.measured_by == "dr_a"
     assert r.rows[0].context.clinical_notes == "note one"
     assert r.rows[0].measurements.vi_mm == 8.0
-    assert r.rows[0].measurements.vi_percentile == 90.0
-    assert r.rows[1].measurements.vi_percentile is None
+    assert r.rows[0].patient.gestational_age_at_birth_weeks == 27
+    assert r.rows[0].patient.gestational_age_at_birth_days == 3
+    assert str(r.rows[0].patient.date_of_birth) == "2025-04-01"
+    assert r.rows[1].patient.gestational_age_at_birth_weeks is None
     assert not r.skipped_rows
 
 

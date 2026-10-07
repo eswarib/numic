@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import enum
 import uuid
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
 from sqlalchemy import (
+    Date,
     DateTime,
     Enum,
     Float,
@@ -43,6 +44,9 @@ class Patient(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     external_ref: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
+    date_of_birth: Mapped[date | None] = mapped_column(Date)
+    gestational_age_at_birth_weeks: Mapped[int | None] = mapped_column(Integer)
+    gestational_age_at_birth_days: Mapped[int | None] = mapped_column(Integer)
     metadata_json: Mapped[dict[str, Any]] = mapped_column(
         "metadata", JSONB, nullable=False, server_default=text("'{}'::jsonb")
     )
@@ -105,8 +109,9 @@ class Measurement(Base):
     vi_mm: Mapped[float | None] = mapped_column(Float)
     ahw_mm: Mapped[float | None] = mapped_column(Float)
     tod_mm: Mapped[float | None] = mapped_column(Float)
-    vi_percentile: Mapped[float | None] = mapped_column(Float)
-    vi_p97_reference_mm: Mapped[float | None] = mapped_column(Float)
+    age_at_scan_weeks: Mapped[float | None] = mapped_column(Float)
+    vi_reference_line_mm: Mapped[float | None] = mapped_column(Float)
+    """Age-based line used for VI scoring (e.g. Levene 97th centile at age at scan)."""
     static_score: Mapped[int] = mapped_column(Integer, nullable=False)
     overlay_uri: Mapped[str | None] = mapped_column(Text)
     extras: Mapped[dict[str, Any]] = mapped_column(

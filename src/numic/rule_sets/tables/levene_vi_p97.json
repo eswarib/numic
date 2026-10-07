@@ -1,0 +1,28 @@
+{
+  "name": "levene_vi_p97",
+  "label": "Levene 97th centile",
+  "metric": "vi",
+  "unit": "mm",
+  "source_citation": "Levene MI. Arch Dis Child 1981;56:900-4, Figure (97th centile of ventricular index).",
+  "verified": false,
+  "verification_note": "PROVISIONAL: approximate values for the demo. Must be replaced with values read from Levene 1981 and checked by a clinician before launch (DEMO open question, blocker).",
+  "points": [
+    [26, 10.7],
+    [27, 11.0],
+    [28, 11.3],
+    [29, 11.6],
+    [30, 11.9],
+    [31, 12.3],
+    [32, 12.7],
+    [33, 13.1],
+    [34, 13.5],
+    [35, 13.9],
+    [36, 14.3],
+    [37, 14.7],
+    [38, 15.1],
+    [39, 15.5],
+    [40, 15.9],
+    [41, 16.2],
+    [42, 16.5]
+  ]
+}

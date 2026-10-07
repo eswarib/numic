@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
+from numic.core.config import DEFAULT_SCORE_VERSION
+
 from numic.api.schemas.measurement import PatientInfo, PatientMeasurementRecord, MeasurementContext
 from numic.api.schemas.scoring import (
     ClinicalScoreInput,
@@ -19,8 +21,8 @@ class DemoNumicFlowFromRecordRequest(BaseModel):
     """Convenience payload for demos: full current record + optional prior record + clinical."""
 
     score_version: str = Field(
-        default="numic_flow_v1",
-        description="Threshold bundle (same as production scoring).",
+        default=DEFAULT_SCORE_VERSION,
+        description="Rule set (same as production scoring).",
     )
     record: PatientMeasurementRecord
     prior_record: PatientMeasurementRecord | None = Field(
@@ -37,9 +39,12 @@ class DemoNumicFlowFromRecordResponse(BaseModel):
     context: MeasurementContext
     entry_source: str | None = None
     measurements: VentricularMeasurements
+    day_of_life: int | None = None
+    age_at_scan_weeks: float | None = None
     static: StaticScoreResult
     progression: ProgressionScoreResult | None
     clinical: ClinicalScoreResult
     numic_flow_score: int = Field(..., ge=0, le=14)
     risk_tier: RiskTier
     score_version: str
+    rule_revision: str

@@ -24,14 +24,13 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--given-name", default=None)
     p.add_argument("--family-name", default=None)
     p.add_argument("--dob", default=None, help="YYYY-MM-DD")
-    p.add_argument("--ga-weeks", type=float, default=None, dest="ga_weeks")
+    p.add_argument("--ga-weeks", type=int, default=None, dest="ga_weeks", help="GA at birth, weeks")
+    p.add_argument("--ga-days", type=int, default=0, dest="ga_days", help="GA at birth, extra days (0-6)")
     p.add_argument("--measured-by", default=None)
     p.add_argument("--clinical-notes", default=None)
     p.add_argument("--vi", type=float, required=True, help="VI (mm) per your protocol")
     p.add_argument("--ahw", type=float, required=True, help="AHW (mm)")
     p.add_argument("--tod", type=float, required=True, help="TOD (mm)")
-    p.add_argument("--vi-percentile", type=float, default=None, dest="vi_percentile")
-    p.add_argument("--vi-p97-ref-mm", type=float, default=None, dest="vi_p97_reference_mm")
     p.add_argument(
         "--source",
         choices=("gui", "cli", "other"),
@@ -58,7 +57,8 @@ def main(argv: list[str] | None = None) -> int:
             given_name=args.given_name,
             family_name=args.family_name,
             date_of_birth=dob,
-            gestational_age_weeks=args.ga_weeks,
+            gestational_age_at_birth_weeks=args.ga_weeks,
+            gestational_age_at_birth_days=args.ga_days,
         ),
         context=MeasurementContext(
             measured_at=measured_at,
@@ -68,8 +68,6 @@ def main(argv: list[str] | None = None) -> int:
         vi_mm=args.vi,
         ahw_mm=args.ahw,
         tod_mm=args.tod,
-        vi_percentile=args.vi_percentile,
-        vi_p97_reference_mm=args.vi_p97_reference_mm,
         entry_source=args.entry_source,
     )
     out = patient_measurement_record_from_manual(req)

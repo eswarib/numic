@@ -1,29 +1,31 @@
-"""Versioned NumicFlow rule bundles (thresholds and bands)."""
+"""Versioned NumicFlow rule sets (thresholds and bands), loaded from ``rule_sets/*.json``."""
 
 from numic.scoring.rules.bundles import (
     DEFAULT_SCORE_VERSION,
-    NUMIC_FLOW_V1,
-    NUMIC_FLOW_V2_PRE95,
     get_rules,
+    list_rule_sets,
     list_score_versions,
 )
 from numic.scoring.rules.models import (
     ClinicalRules,
+    FixedThreshold,
     NumicFlowRules,
     ProgressionRules,
+    ReferenceLineThreshold,
     RiskTierRules,
     StaticRules,
 )
 
 __all__ = [
     "DEFAULT_SCORE_VERSION",
-    "NUMIC_FLOW_V1",
-    "NUMIC_FLOW_V2_PRE95",
     "ClinicalRules",
+    "FixedThreshold",
     "NumicFlowRules",
     "ProgressionRules",
+    "ReferenceLineThreshold",
     "RiskTierRules",
     "StaticRules",
     "get_rules",
+    "list_rule_sets",
     "list_score_versions",
 ]

@@ -23,7 +23,9 @@ def _patient():
         external_ref="MRN-1001",
         given_name="Baby",
         family_name="Test",
-        gestational_age_weeks=28.0,
+        date_of_birth="2025-04-01",
+        gestational_age_at_birth_weeks=28,
+        gestational_age_at_birth_days=2,
     )
 
 
@@ -34,14 +36,12 @@ def test_manual_entry_to_ventricular() -> None:
         vi_mm=8.0,
         ahw_mm=6.5,
         tod_mm=24.0,
-        vi_percentile=90.0,
         entry_source="gui",
     )
     m = measurements_from_manual_entry(req)
     assert m.vi_mm == 8.0
     assert m.ahw_mm == 6.5
     assert m.tod_mm == 24.0
-    assert m.vi_percentile == 90.0
 
 
 def test_patient_measurement_record() -> None:
@@ -97,10 +97,16 @@ def test_cli_measure_json(capsys) -> None:
             "2",
             "--tod",
             "3",
-            "--vi-percentile",
-            "50",
+            "--dob",
+            "2025-01-01",
+            "--ga-weeks",
+            "27",
+            "--ga-days",
+            "3",
         ]
     )
     assert code == 0
     out = capsys.readouterr().out.strip()
-    assert '"vi_mm":1' in out.replace(" ", "") or '"vi_mm": 1' in out
+    compact = out.replace(" ", "")
+    assert '"vi_mm":1' in compact
+    assert '"gestational_age_at_birth_weeks":27' in compact

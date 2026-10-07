@@ -1,0 +1,45 @@
+{
+  "score_version": "numic_flow_levene",
+  "revision": 1,
+  "label": "Levene 1981 + ELVIS",
+  "source_citation": "Levene MI. Measurement of the growth of the lateral ventricles in preterm infants with real-time ultrasound. Arch Dis Child 1981;56:900-4. ELVIS trial thresholds (de Vries et al. 2019). Summarised in El-Dib et al., J Pediatr 2020.",
+  "status": "active",
+  "age": {
+    "interpolation": "linear",
+    "out_of_range_behaviour": "reject",
+    "vi_side_policy": "max"
+  },
+  "static": {
+    "vi": {
+      "kind": "reference_line",
+      "table": "levene_vi_p97",
+      "one_point_offset_mm": 0,
+      "two_point_offset_mm": 4
+    },
+    "ahw": {
+      "kind": "fixed",
+      "one_point_min_mm": 6,
+      "two_point_min_mm": 10,
+      "two_point_inclusive": false
+    },
+    "tod": {
+      "kind": "fixed",
+      "one_point_min_mm": 25,
+      "two_point_min_mm": 30,
+      "two_point_inclusive": true
+    }
+  },
+  "progression": {
+    "vi_ahw_worsening_mm": [1, 2],
+    "tod_worsening_mm": [2, 4]
+  },
+  "clinical": {
+    "none": 0,
+    "mild": 1,
+    "clear": 2
+  },
+  "risk_tier": {
+    "low_max": 3,
+    "moderate_max": 7
+  }
+}

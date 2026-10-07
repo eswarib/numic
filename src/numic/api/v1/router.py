@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
-
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from numic.api.schemas.measurement import (
@@ -34,10 +32,10 @@ from numic.api.schemas.scoring import (
     StaticScoreResult,
     VentricularMeasurements,
 )
-from numic.scoring.aggregate import numic_flow_total, risk_tier
 from numic.scoring.clinical import compute_clinical_score
+from numic.scoring.numic_flow import score_numic_flow
 from numic.scoring.progression import compute_progression_score
-from numic.scoring.rules import get_rules, list_score_versions
+from numic.scoring.rules import get_rules, list_rule_sets
 from numic.scoring.static import compute_static_score
 
 api_router = APIRouter()
@@ -52,7 +50,14 @@ def _rules_or_422(score_version: str):
 
 @api_router.get("/score/versions")
 def get_score_versions():
-    return {"score_versions": list_score_versions()}
+    rule_sets = list_rule_sets()
+    return {
+        "score_versions": [r.score_version for r in rule_sets],
+        "rule_sets": [
+            {"score_version": r.score_version, "revision": r.revision_id, "label": r.label}
+            for r in rule_sets
+        ],
+    }
 
 
 @api_router.post("/measurement/from-overlay", response_model=PatientMeasurementRecord)
@@ -72,7 +77,7 @@ async def post_measurements_from_manual_table(file: UploadFile = File(...)) -> T
     """Bulk import: UTF-8 ``.csv`` or ``.xlsx``. Required per row: patient id, ``measured_at``, vi/ahw/tod.
 
     Columns (aliases): ``mrn``/``patient_id``, ``measured_at``, ``measured_by``, ``clinical_notes``,
-    optional ``given_name``, ``family_name``, ``date_of_birth``, ``gestational_age_weeks``.
+    optional ``given_name``, ``family_name``, ``date_of_birth``, ``ga_at_birth_weeks``, ``ga_at_birth_days``.
     """
     data = await file.read()
     try:
@@ -98,13 +103,7 @@ def post_measurements_from_coronal_landmarks(body: CoronalLandmarkCalipersReques
         vi_vent_right_row=body.vi_vent_right_row,
         vi_vent_right_col=body.vi_vent_right_col,
     )
-    m = measurements_from_coronal_landmark_pixels(
-        lm,
-        body.pixel_spacing_row_mm,
-        body.pixel_spacing_col_mm,
-        vi_percentile=body.vi_percentile,
-        vi_p97_reference_mm=body.vi_p97_reference_mm,
-    )
+    m = measurements_from_coronal_landmark_pixels(lm, body.pixel_spacing_row_mm, body.pixel_spacing_col_mm)
     return PatientMeasurementRecord(
         patient=body.patient,
         context=body.context,
@@ -131,7 +130,7 @@ async def post_measurements_from_image(file: UploadFile = File(...)) -> Ventricu
 def post_static(body: StaticScoreRequest) -> StaticScoreResult:
     rules = _rules_or_422(body.score_version)
     try:
-        return compute_static_score(body.measurements, rules)
+        return compute_static_score(body.measurements, rules, body.age_at_scan_weeks)
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e)) from e
 
@@ -148,43 +147,16 @@ def post_clinical(body: ClinicalScoreRequest) -> ClinicalScoreResult:
     return compute_clinical_score(body.clinical, rules)
 
 
-async def _run_numicflow(body: NumicFlowScoreRequest) -> NumicFlowScoreResponse:
-    """Run static, progression (if prior), and clinical concurrently."""
+@api_router.post("/score/numic-flow", response_model=NumicFlowScoreResponse)
+def post_numic_flow(body: NumicFlowScoreRequest) -> NumicFlowScoreResponse:
     rules = _rules_or_422(body.score_version)
-
-    async def _static() -> StaticScoreResult:
-        return await asyncio.to_thread(compute_static_score, body.current, rules)
-
-    async def _clinical() -> ClinicalScoreResult:
-        return await asyncio.to_thread(compute_clinical_score, body.clinical, rules)
-
-    async def _progression() -> ProgressionScoreResult | None:
-        if body.prior is None:
-            return None
-        return await asyncio.to_thread(compute_progression_score, body.prior, body.current, rules)
-
     try:
-        static, clinical_result, prog = await asyncio.gather(
-            _static(),
-            _clinical(),
-            _progression(),
+        return score_numic_flow(
+            body.current,
+            rules,
+            age_at_scan_weeks=body.age_at_scan_weeks,
+            prior=body.prior,
+            clinical=body.clinical,
         )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e)) from e
-
-    prog_score = 0 if prog is None else prog.progression_score
-    total = numic_flow_total(static.static_score, prog_score, clinical_result.clinical_modifier)
-
-    return NumicFlowScoreResponse(
-        static=static,
-        progression=prog,
-        clinical=clinical_result,
-        numic_flow_score=total,
-        risk_tier=risk_tier(total, rules),
-        score_version=rules.score_version,
-    )
-
-
-@api_router.post("/score/numic-flow", response_model=NumicFlowScoreResponse)
-async def post_numic_flow(body: NumicFlowScoreRequest) -> NumicFlowScoreResponse:
-    return await _run_numicflow(body)

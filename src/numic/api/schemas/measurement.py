@@ -20,12 +20,14 @@ class PatientInfo(BaseModel):
     )
     given_name: str | None = Field(None, max_length=128)
     family_name: str | None = Field(None, max_length=128)
-    date_of_birth: date | None = None
-    gestational_age_weeks: float | None = Field(
-        None,
-        ge=10.0,
-        le=45.0,
-        description="Gestational age at scan when relevant (weeks).",
+    date_of_birth: date | None = Field(
+        None, description="Required for age-based rule sets: day of life = scan date − date of birth."
+    )
+    gestational_age_at_birth_weeks: int | None = Field(
+        None, ge=20, le=44, description="Gestational age at birth, completed weeks (e.g. 27 for 27+3)."
+    )
+    gestational_age_at_birth_days: int = Field(
+        0, ge=0, le=6, description="Gestational age at birth, extra days (e.g. 3 for 27+3)."
     )
 
 
@@ -65,10 +67,6 @@ class ManualMeasurementRequest(BaseModel):
     vi_mm: float = Field(..., ge=0, description="Ventricular index or width per your protocol (mm).")
     ahw_mm: float = Field(..., ge=0, description="Anterior horn width (mm).")
     tod_mm: float = Field(..., ge=0, description="Thalamo-occipital distance (mm).")
-    vi_percentile: float | None = Field(None, ge=0, le=100)
-    vi_p97_reference_mm: float | None = Field(
-        None, description="Nomogram reference mm at the elevated VI percentile for GA."
-    )
     entry_source: Literal["gui", "cli", "other"] | None = Field(
         None, description="Where the values were captured (audit trail)."
     )
@@ -83,8 +81,6 @@ class CoronalLandmarkCalipersRequest(BaseModel):
 
     pixel_spacing_row_mm: float = Field(..., gt=0, description="mm per pixel in row direction")
     pixel_spacing_col_mm: float = Field(..., gt=0, description="mm per pixel in column direction")
-    vi_percentile: float | None = Field(None, ge=0, le=100)
-    vi_p97_reference_mm: float | None = None
 
     ahw_left_row: float
     ahw_left_col: float
@@ -104,10 +100,6 @@ class OverlayMetadata(BaseModel):
     """Numeric overlay output only (no patient)—use ``OverlayMeasurementRequest`` for API uploads."""
 
     vi_mm: float = Field(..., description="Ventricular index (mm).")
-    vi_percentile: float | None = Field(None, ge=0, le=100)
-    vi_p97_reference_mm: float | None = Field(
-        None, description="97th percentile VI in mm for GA (for VI 'high' rule)."
-    )
     ahw_mm: float = Field(..., description="Anterior horn width (mm).")
     tod_mm: float = Field(..., description="Thalamo-occipital distance (mm).")
 

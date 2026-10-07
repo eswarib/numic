@@ -37,9 +37,6 @@ def measurements_from_coronal_landmarks(
     lm: CoronalLandmarkPixels,
     pixel_spacing_row_mm: float,
     pixel_spacing_col_mm: float,
-    *,
-    vi_percentile: float | None = None,
-    vi_p97_reference_mm: float | None = None,
 ) -> VentricularMeasurements:
     """Convert coronal calipers to ``VentricularMeasurements``.
 
@@ -70,10 +67,4 @@ def measurements_from_coronal_landmarks(
         pixel_spacing_row_mm,
         pixel_spacing_col_mm,
     )
-    return VentricularMeasurements(
-        vi_mm=vi,
-        vi_percentile=vi_percentile,
-        vi_p97_reference_mm=vi_p97_reference_mm,
-        ahw_mm=ahw,
-        tod_mm=tod,
-    )
+    return VentricularMeasurements(vi_mm=vi, ahw_mm=ahw, tod_mm=tod)

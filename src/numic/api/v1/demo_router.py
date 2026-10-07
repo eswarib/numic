@@ -2,25 +2,34 @@
 
 from __future__ import annotations
 
-import asyncio
-
 from fastapi import APIRouter, HTTPException
 
 from numic.api.schemas.demo import DemoNumicFlowFromRecordRequest, DemoNumicFlowFromRecordResponse
-from numic.scoring.aggregate import numic_flow_total, risk_tier
-from numic.scoring.clinical import compute_clinical_score
-from numic.scoring.progression import compute_progression_score
+from numic.api.schemas.measurement import PatientMeasurementRecord
+from numic.core.config import get_settings
+from numic.scoring.nomogram import AgeAtScan, age_at_scan
+from numic.scoring.numic_flow import score_numic_flow
 from numic.scoring.rules import get_rules
-from numic.scoring.static import compute_static_score
 
 demo_router = APIRouter(prefix="/demo", tags=["demo"])
 
 
-def _rules_or_422(score_version: str):
-    try:
-        return get_rules(score_version)
-    except ValueError as e:
-        raise HTTPException(status_code=422, detail=str(e)) from e
+def _age(record: PatientMeasurementRecord, needs_age: bool) -> AgeAtScan | None:
+    p = record.patient
+    if p.date_of_birth is None or p.gestational_age_at_birth_weeks is None:
+        if needs_age:
+            raise ValueError(
+                "patient.date_of_birth and patient.gestational_age_at_birth_weeks are required "
+                "for age-based rule sets"
+            )
+        return None
+    return age_at_scan(
+        p.date_of_birth,
+        p.gestational_age_at_birth_weeks,
+        p.gestational_age_at_birth_days,
+        record.context.measured_at,
+        get_settings().scan_day_timezone,
+    )
 
 
 @demo_router.post(
@@ -28,55 +37,43 @@ def _rules_or_422(score_version: str):
     response_model=DemoNumicFlowFromRecordResponse,
     summary="Demo: patient record(s) → NumicFlow score in one call",
 )
-async def demo_numic_flow_from_record(
-    body: DemoNumicFlowFromRecordRequest,
-) -> DemoNumicFlowFromRecordResponse:
+def demo_numic_flow_from_record(body: DemoNumicFlowFromRecordRequest) -> DemoNumicFlowFromRecordResponse:
     """Run static + progression (if ``prior_record``) + clinical on embedded measurements.
 
-    Intended for demos and quick UI wiring. Production flows may keep separate measurement persistence and scoring steps.
+    Age at scan is worked out from the patient's date of birth, gestational age at birth and
+    ``context.measured_at``. Intended for demos and quick UI wiring.
     """
-    if body.prior_record is not None:
-        if (
-            body.prior_record.patient.external_ref.strip()
-            != body.record.patient.external_ref.strip()
-        ):
+    prior = body.prior_record
+    if prior is not None:
+        if prior.patient.external_ref.strip() != body.record.patient.external_ref.strip():
             raise HTTPException(
                 status_code=422,
                 detail="prior_record.patient.external_ref must match record.patient.external_ref",
             )
-
-    rules = _rules_or_422(body.score_version)
-    current = body.record.measurements
-    prior = body.prior_record.measurements if body.prior_record else None
-
-    async def _static():
-        return await asyncio.to_thread(compute_static_score, current, rules)
-
-    async def _clinical():
-        return await asyncio.to_thread(compute_clinical_score, body.clinical, rules)
-
-    async def _prog():
-        if prior is None:
-            return None
-        return await asyncio.to_thread(compute_progression_score, prior, current, rules)
+        if prior.context.measured_at >= body.record.context.measured_at:
+            raise HTTPException(status_code=422, detail="prior_record must be earlier than record")
 
     try:
-        static, clinical_result, prog = await asyncio.gather(_static(), _clinical(), _prog())
+        rules = get_rules(body.score_version)
+        age = _age(body.record, rules.static.needs_age)
+        if prior is not None:
+            _age(prior, False)  # reject a prior scan dated before the birth
+        result = score_numic_flow(
+            body.record.measurements,
+            rules,
+            age_at_scan_weeks=None if age is None else age.age_weeks,
+            prior=None if prior is None else prior.measurements,
+            clinical=body.clinical,
+        )
     except ValueError as e:
         raise HTTPException(status_code=422, detail=str(e)) from e
-
-    prog_score = 0 if prog is None else prog.progression_score
-    total = numic_flow_total(static.static_score, prog_score, clinical_result.clinical_modifier)
 
     return DemoNumicFlowFromRecordResponse(
         patient=body.record.patient,
         context=body.record.context,
         entry_source=body.record.entry_source,
-        measurements=current,
-        static=static,
-        progression=prog,
-        clinical=clinical_result,
-        numic_flow_score=total,
-        risk_tier=risk_tier(total, rules),
-        score_version=rules.score_version,
+        measurements=body.record.measurements,
+        day_of_life=None if age is None else age.day_of_life,
+        age_at_scan_weeks=None if age is None else age.age_weeks,
+        **result.model_dump(),
     )

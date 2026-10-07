@@ -40,8 +40,6 @@ def patient_record_from_overlay(req: OverlayMeasurementRequest) -> PatientMeasur
 def ventricular_measurements_from_overlay(overlay: OverlayMetadata) -> VentricularMeasurements:
     return VentricularMeasurements(
         vi_mm=overlay.vi_mm,
-        vi_percentile=overlay.vi_percentile,
-        vi_p97_reference_mm=overlay.vi_p97_reference_mm,
         ahw_mm=overlay.ahw_mm,
         tod_mm=overlay.tod_mm,
     )
@@ -77,17 +75,8 @@ def measurements_from_coronal_landmark_pixels(
     lm: CoronalLandmarkPixels,
     pixel_spacing_row_mm: float,
     pixel_spacing_col_mm: float,
-    *,
-    vi_percentile: float | None = None,
-    vi_p97_reference_mm: float | None = None,
 ) -> VentricularMeasurements:
-    return measurements_from_coronal_landmarks(
-        lm,
-        pixel_spacing_row_mm,
-        pixel_spacing_col_mm,
-        vi_percentile=vi_percentile,
-        vi_p97_reference_mm=vi_p97_reference_mm,
-    )
+    return measurements_from_coronal_landmarks(lm, pixel_spacing_row_mm, pixel_spacing_col_mm)
 
 
 __all__ = [

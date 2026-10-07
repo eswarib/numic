@@ -34,14 +34,6 @@ for canon, aliases in (
     ),
     ("ahw_mm", ("ahw_mm", "ahw", "anterior_horn_width", "anterior_horn_width_mm")),
     ("tod_mm", ("tod_mm", "tod", "thalamo_occipital", "thalamo_occipital_distance_mm")),
-    (
-        "vi_percentile",
-        ("vi_percentile", "percentile", "ga_vi_percentile", "vi_pct"),
-    ),
-    (
-        "vi_p97_reference_mm",
-        ("vi_p97_reference_mm", "p97_ref_mm", "vi_nomogram_mm", "p97_mm"),
-    ),
     ("external_ref", ("external_ref", "patient_id", "mrn", "episode_id", "subject_id")),
     (
         "measured_at",
@@ -58,7 +50,14 @@ for canon, aliases in (
     ("given_name", ("given_name", "first_name", "patient_given_name")),
     ("family_name", ("family_name", "last_name", "surname", "patient_family_name")),
     ("date_of_birth", ("date_of_birth", "dob", "birth_date", "patient_dob")),
-    ("gestational_age_weeks", ("gestational_age_weeks", "ga_weeks", "ga")),
+    (
+        "gestational_age_at_birth_weeks",
+        ("gestational_age_at_birth_weeks", "ga_at_birth_weeks", "ga_weeks"),
+    ),
+    (
+        "gestational_age_at_birth_days",
+        ("gestational_age_at_birth_days", "ga_at_birth_days", "ga_days"),
+    ),
 ):
     for a in aliases:
         _HEADER_TO_CANONICAL[_norm_header(a)] = canon
@@ -114,12 +113,7 @@ def _row_to_measurement_payload(mapped: dict[str, Any]) -> dict[str, Any]:
     vi = _parse_required_float(mapped.get("vi_mm"), "vi_mm")
     ahw = _parse_required_float(mapped.get("ahw_mm"), "ahw_mm")
     tod = _parse_required_float(mapped.get("tod_mm"), "tod_mm")
-    payload: dict[str, Any] = {"vi_mm": vi, "ahw_mm": ahw, "tod_mm": tod}
-    if mapped.get("vi_percentile") not in (None, ""):
-        payload["vi_percentile"] = _parse_optional_float(str(mapped["vi_percentile"]))
-    if mapped.get("vi_p97_reference_mm") not in (None, ""):
-        payload["vi_p97_reference_mm"] = _parse_optional_float(str(mapped["vi_p97_reference_mm"]))
-    return payload
+    return {"vi_mm": vi, "ahw_mm": ahw, "tod_mm": tod}
 
 
 def _opt_str(mapped: dict[str, Any], key: str) -> str | None:
@@ -133,15 +127,15 @@ def _row_to_patient_and_context(mapped: dict[str, Any]) -> tuple[PatientInfo, Me
     ext = mapped.get("external_ref")
     if ext is None or str(ext).strip() == "":
         raise ValueError("missing patient external_ref (mrn / patient_id / external_ref)")
-    ga = None
-    if mapped.get("gestational_age_weeks") not in (None, ""):
-        ga = _parse_optional_float(str(mapped["gestational_age_weeks"]))
+    ga_weeks = _parse_optional_float(str(mapped.get("gestational_age_at_birth_weeks") or ""))
+    ga_days = _parse_optional_float(str(mapped.get("gestational_age_at_birth_days") or ""))
     patient = PatientInfo(
         external_ref=str(ext).strip(),
         given_name=_opt_str(mapped, "given_name"),
         family_name=_opt_str(mapped, "family_name"),
         date_of_birth=_parse_optional_date(mapped.get("date_of_birth")),
-        gestational_age_weeks=ga,
+        gestational_age_at_birth_weeks=None if ga_weeks is None else int(ga_weeks),
+        gestational_age_at_birth_days=0 if ga_days is None else int(ga_days),
     )
     ctx = MeasurementContext(
         measured_at=_parse_measured_at(mapped.get("measured_at")),

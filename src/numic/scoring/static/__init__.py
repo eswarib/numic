@@ -1,3 +1,3 @@
-from numic.scoring.static.service import compute_static_score, score_ahw, score_tod, score_vi
+from numic.scoring.static.service import AgeRequiredError, compute_static_score, score_metric
 
-__all__ = ["compute_static_score", "score_ahw", "score_tod", "score_vi"]
+__all__ = ["AgeRequiredError", "compute_static_score", "score_metric"]
