@@ -1,0 +1,109 @@
+{
+  "_comment": "Synthetic demo babies. Dates are offsets: born N days before today, scanned on day k of life at local time. Rebuilt on start-up and daily so ages stay realistic. To be reviewed by a clinician for realism (DEMO open question).",
+  "babies": [
+    {
+      "id": "DEMO-0001",
+      "story": "Stable, small ventricles",
+      "born_days_ago": 19,
+      "ga_weeks": 30, "ga_days": 0,
+      "scans": [
+        {"day": 3, "time": "09:00", "vi_left": 8.6, "vi_right": 9.0, "ahw": 3.0, "tod": 20.0, "concern": "none"},
+        {"day": 10, "time": "09:30", "vi_left": 8.8, "vi_right": 9.1, "ahw": 3.2, "tod": 20.5, "concern": "none"},
+        {"day": 17, "time": "10:00", "vi_left": 8.7, "vi_right": 9.0, "ahw": 3.1, "tod": 20.4, "concern": "none"}
+      ]
+    },
+    {
+      "id": "DEMO-0002",
+      "story": "Slow growth, stays below the line",
+      "born_days_ago": 18,
+      "ga_weeks": 27, "ga_days": 4,
+      "scans": [
+        {"day": 2, "time": "08:45", "vi_left": 10.2, "vi_right": 10.5, "ahw": 4.0, "tod": 21.0, "concern": "none"},
+        {"day": 9, "time": "09:15", "vi_left": 10.5, "vi_right": 10.8, "ahw": 4.5, "tod": 22.0, "concern": "none"},
+        {"day": 16, "time": "09:00", "vi_left": 10.6, "vi_right": 11.0, "ahw": 5.0, "tod": 22.5, "concern": "none"}
+      ]
+    },
+    {
+      "id": "DEMO-0003",
+      "story": "Borderline anterior horn, mild clinical concern",
+      "born_days_ago": 13,
+      "ga_weeks": 29, "ga_days": 2,
+      "scans": [
+        {"day": 4, "time": "11:00", "vi_left": 11.2, "vi_right": 11.5, "ahw": 6.0, "tod": 23.5, "concern": "none"},
+        {"day": 11, "time": "10:30", "vi_left": 11.0, "vi_right": 11.3, "ahw": 6.2, "tod": 24.0, "concern": "mild"}
+      ]
+    },
+    {
+      "id": "DEMO-0004",
+      "story": "First scan only, no trend yet",
+      "born_days_ago": 6,
+      "ga_weeks": 32, "ga_days": 1,
+      "scans": [
+        {"day": 5, "time": "14:00", "vi_left": 9.6, "vi_right": 10.0, "ahw": 4.0, "tod": 21.0, "concern": "none"}
+      ]
+    },
+    {
+      "id": "DEMO-0005",
+      "story": "Just above the line, not growing",
+      "born_days_ago": 12,
+      "ga_weeks": 28, "ga_days": 0,
+      "scans": [
+        {"day": 3, "time": "09:00", "vi_left": 11.3, "vi_right": 11.6, "ahw": 6.3, "tod": 23.0, "concern": "none"},
+        {"day": 10, "time": "09:00", "vi_left": 11.8, "vi_right": 12.0, "ahw": 6.5, "tod": 23.0, "concern": "none"}
+      ]
+    },
+    {
+      "id": "DEMO-0006",
+      "story": "Steady growth across all three measurements",
+      "born_days_ago": 21,
+      "ga_weeks": 26, "ga_days": 5,
+      "scans": [
+        {"day": 5, "time": "10:00", "vi_left": 10.6, "vi_right": 11.0, "ahw": 6.0, "tod": 24.0, "concern": "none"},
+        {"day": 12, "time": "10:00", "vi_left": 12.2, "vi_right": 12.5, "ahw": 7.5, "tod": 25.5, "concern": "none"},
+        {"day": 19, "time": "10:15", "vi_left": 13.2, "vi_right": 13.6, "ahw": 8.5, "tod": 26.5, "concern": "none"}
+      ]
+    },
+    {
+      "id": "DEMO-0007",
+      "story": "Above the line with mild clinical concern",
+      "born_days_ago": 11,
+      "ga_weeks": 31, "ga_days": 0,
+      "scans": [
+        {"day": 2, "time": "13:00", "vi_left": 12.2, "vi_right": 12.5, "ahw": 8.4, "tod": 26.2, "concern": "none"},
+        {"day": 9, "time": "12:30", "vi_left": 13.0, "vi_right": 13.4, "ahw": 9.0, "tod": 27.0, "concern": "mild"}
+      ]
+    },
+    {
+      "id": "DEMO-0008",
+      "story": "Rapid enlargement after a large bleed",
+      "born_days_ago": 18,
+      "ga_weeks": 25, "ga_days": 6,
+      "scans": [
+        {"day": 4, "time": "09:00", "vi_left": 11.6, "vi_right": 12.0, "ahw": 7.0, "tod": 25.0, "concern": "none"},
+        {"day": 10, "time": "09:30", "vi_left": 14.0, "vi_right": 14.5, "ahw": 9.5, "tod": 28.0, "concern": "mild"},
+        {"day": 17, "time": "08:45", "vi_left": 16.6, "vi_right": 17.0, "ahw": 11.5, "tod": 31.0, "concern": "mild"}
+      ]
+    },
+    {
+      "id": "DEMO-0009",
+      "story": "Born at 24 weeks: first scan is before the Levene chart starts",
+      "born_days_ago": 22,
+      "ga_weeks": 24, "ga_days": 2,
+      "scans": [
+        {"day": 3, "time": "10:00", "vi_left": 9.6, "vi_right": 10.0, "ahw": 6.0, "tod": 24.0, "concern": "none"},
+        {"day": 14, "time": "10:00", "vi_left": 12.6, "vi_right": 13.0, "ahw": 8.0, "tod": 26.0, "concern": "mild"},
+        {"day": 21, "time": "09:45", "vi_left": 15.5, "vi_right": 16.0, "ahw": 10.5, "tod": 29.0, "concern": "clear"}
+      ]
+    },
+    {
+      "id": "DEMO-0010",
+      "story": "Later preterm, normal measurements",
+      "born_days_ago": 7,
+      "ga_weeks": 33, "ga_days": 3,
+      "scans": [
+        {"day": 1, "time": "16:00", "vi_left": 11.2, "vi_right": 11.5, "ahw": 5.0, "tod": 23.0, "concern": "none"},
+        {"day": 6, "time": "11:00", "vi_left": 11.5, "vi_right": 11.8, "ahw": 5.0, "tod": 23.0, "concern": "none"}
+      ]
+    }
+  ]
+}
