@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NUMIC System Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: reading column with sticky index; the layered component map is the one large object. */
+:root {
+  --bg: #f6f8f9; --surface: #ffffff; --ink: #14212b; --muted: #566672; --line: #d9e1e6;
+  --accent: #0b6e78; --accent-soft: #e2f1f2;
+  --fe: #2563eb; --fe-soft: #e6eefe;
+  --core: #0b6e78; --core-soft: #e2f1f2;
+  --data: #5b4bb7; --data-soft: #ece9f8;
+  --cross: #a86a00; --cross-soft: #fbf0d9;
+  --ext: #566672; --ext-soft: #eef2f4;
+  --yes: #2f7d4f; --yes-bg: #e5f3ea; --part: #a86a00; --part-bg: #fbf0d9; --no: #566672; --no-bg: #eef2f4;
+  --f-display: "Newsreader", Georgia, "Times New Roman", serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f171c; --surface: #16222a; --ink: #e3eaee; --muted: #9aabb6; --line: #2a3a44;
+    --accent: #5cc3cc; --accent-soft: #173238;
+    --fe: #7aa2ff; --fe-soft: #1a2540; --core: #5cc3cc; --core-soft: #173238; --data: #a99cf0; --data-soft: #25213d;
+    --cross: #f0b64a; --cross-soft: #33280f; --ext: #9aabb6; --ext-soft: #1d2a32;
+    --yes: #6fcf91; --yes-bg: #16301f; --part: #f0b64a; --part-bg: #33280f; --no: #9aabb6; --no-bg: #1d2a32;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f171c; --surface: #16222a; --ink: #e3eaee; --muted: #9aabb6; --line: #2a3a44;
+  --accent: #5cc3cc; --accent-soft: #173238;
+  --fe: #7aa2ff; --fe-soft: #1a2540; --core: #5cc3cc; --core-soft: #173238; --data: #a99cf0; --data-soft: #25213d;
+  --cross: #f0b64a; --cross-soft: #33280f; --ext: #9aabb6; --ext-soft: #1d2a32;
+  --yes: #6fcf91; --yes-bg: #16301f; --part: #f0b64a; --part-bg: #33280f; --no: #9aabb6; --no-bg: #1d2a32;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 400 16px/1.6 var(--f-body); margin: 0; }
+.wrap { max-width: 1160px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 80px;
+  display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 52px; }
+nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; font-size: 13.5px; }
+nav.toc p { font: 500 11px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
+nav.toc ol { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+nav.toc a { color: var(--muted); text-decoration: none; }
+nav.toc a:hover, nav.toc a:focus-visible { color: var(--accent); }
+main { min-width: 0; }
+header.hero { padding-bottom: 24px; border-bottom: 1px solid var(--line); }
+.eyebrow { font: 500 12px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 0 0 14px; }
+h1 { font: 600 clamp(32px, 5vw, 46px)/1.08 var(--f-display); margin: 0 0 14px; text-wrap: balance; letter-spacing: -.01em; }
+.lede { font-size: 18.5px; line-height: 1.55; max-width: 66ch; margin: 0; }
+.meta { margin-top: 14px; font-size: 13px; color: var(--muted); }
+.ver { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; font: 500 12px/1 var(--f-mono); }
+.ver .v { background: var(--accent); color: var(--surface); padding: 5px 9px; border-radius: 4px; }
+.ver .d { color: var(--muted); }
+.ver a { color: var(--accent); }
+section { padding-top: 42px; }
+h2 { font: 600 27px/1.2 var(--f-display); margin: 0 0 12px; text-wrap: balance; }
+h3 { font: 600 16px/1.3 var(--f-body); margin: 24px 0 8px; }
+p, li { max-width: 72ch; }
+p { margin: 0 0 12px; }
+ul { padding-left: 20px; margin: 0 0 12px; }
+li { margin-bottom: 5px; }
+a { color: var(--accent); }
+code { font-family: var(--f-mono); font-size: .86em; background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+.muted { color: var(--muted); }
+
+/* Component map */
+.map { display: grid; grid-template-columns: minmax(0, 1fr) 210px; gap: 12px; margin-top: 14px; }
+.stack { display: grid; gap: 10px; min-width: 0; }
+.band { border: 1px solid var(--line); border-left: 4px solid var(--c); border-radius: 8px; background: var(--surface); padding: 10px 12px 12px; min-width: 0; }
+.band > .lbl, .side > .lbl { font: 500 11px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--c); margin-bottom: 8px; display: block; }
+.boxes { display: flex; flex-wrap: wrap; gap: 8px; }
+.box { flex: 1 1 150px; min-width: 0; background: var(--cs); border-radius: 6px; padding: 8px 10px; text-decoration: none; color: var(--ink); display: block; }
+a.box:hover, a.box:focus-visible { outline: 2px solid var(--c); outline-offset: 1px; }
+.box b { display: block; font-size: 14px; line-height: 1.3; }
+.box span { display: block; font: 500 11px/1.4 var(--f-mono); color: var(--c); }
+.box small { display: block; font-size: 12.5px; color: var(--muted); line-height: 1.4; margin-top: 3px; }
+.arrow { text-align: center; font: 500 12px/1 var(--f-mono); color: var(--muted); }
+.side { border: 1px solid var(--line); border-top: 4px solid var(--c); border-radius: 8px; background: var(--surface); padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; }
+.side .box { flex: 0 0 auto; }
+.fe { --c: var(--fe); --cs: var(--fe-soft); }
+.core { --c: var(--core); --cs: var(--core-soft); }
+.data { --c: var(--data); --cs: var(--data-soft); }
+.cross { --c: var(--cross); --cs: var(--cross-soft); }
+.ext { --c: var(--ext); --cs: var(--ext-soft); }
+
+.principles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 22px; margin-top: 10px; }
+.principles div { border-top: 2px solid var(--accent); padding-top: 8px; min-width: 0; }
+.principles b { display: block; font-size: 15px; margin-bottom: 2px; }
+.principles p { font-size: 14.5px; margin: 0; color: var(--muted); }
+
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); margin-top: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 680px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font: 500 11px/1.3 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); background: var(--bg); }
+td.code { font: 500 12.5px/1.45 var(--f-mono); white-space: nowrap; }
+.st { font: 500 11px/1 var(--f-mono); letter-spacing: .04em; text-transform: uppercase; padding: 4px 7px; border-radius: 4px; white-space: nowrap; }
+.st.yes { background: var(--yes-bg); color: var(--yes); } .st.part { background: var(--part-bg); color: var(--part); } .st.no { background: var(--no-bg); color: var(--no); }
+
+.flows { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 10px; }
+.flow { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-width: 0; }
+.flow h3 { margin: 0 0 8px; }
+.flow ol { margin: 0; padding-left: 20px; font-size: 14.5px; }
+.flow li { margin-bottom: 4px; }
+.flow .c { font: 500 11.5px/1 var(--f-mono); color: var(--accent); }
+
+.deploy { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 10px; }
+.dep { border: 1px solid var(--line); border-radius: 10px; background: var(--surface); padding: 14px 16px; min-width: 0; }
+.dep .tag { font: 500 11px/1 var(--f-mono); letter-spacing: .07em; text-transform: uppercase; color: var(--accent); }
+.dep h3 { margin: 6px 0 8px; }
+.dep ul { font-size: 14.5px; margin: 0; }
+
+.phases { list-style: none; padding: 0; counter-reset: ph; margin: 10px 0 0; }
+.phases li { counter-increment: ph; position: relative; padding: 10px 0 10px 40px; border-top: 1px solid var(--line); margin: 0; max-width: none; }
+.phases li::before { content: counter(ph, decimal) ; position: absolute; left: 0; top: 11px; width: 26px; height: 26px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font: 500 12.5px/26px var(--f-mono); text-align: center; }
+.phases b { display: block; }
+.phases span { color: var(--muted); font-size: 14.5px; }
+.phases .codes { font: 500 11.5px/1.4 var(--f-mono); color: var(--accent); display: block; margin-top: 2px; }
+
+.hist td.vn { font: 500 13px/1.4 var(--f-mono); white-space: nowrap; width: 64px; color: var(--accent); }
+.hist td.dt { font: 400 13px/1.4 var(--f-mono); white-space: nowrap; color: var(--muted); width: 110px; }
+footer { margin-top: 52px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (max-width: 900px) {
+  .wrap { grid-template-columns: minmax(0, 1fr); gap: 0; padding-block: 28px 60px; padding-inline: 16px; }
+  nav.toc { display: none; }
+  .map { grid-template-columns: minmax(0, 1fr); }
+  .flows, .deploy, .principles { grid-template-columns: minmax(0, 1fr); }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="toc" aria-label="Sections">
+    <p>Contents</p>
+    <ol>
+      <li><a href="#map">Component map</a></li>
+      <li><a href="#principles">Principles</a></li>
+      <li><a href="#components">Components</a></li>
+      <li><a href="#flows">Key flows</a></li>
+      <li><a href="#deployments">Deployments</a></li>
+      <li><a href="#demo">Demo deployment</a></li>
+      <li><a href="#tech">Technology</a></li>
+      <li><a href="#phases">Build order</a></li>
+      <li><a href="#open">Open decisions</a></li>
+      <li><a href="#history">Change history</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <p class="eyebrow">NUMIC · design documents</p>
+      <h1>NUMIC system architecture</h1>
+      <p class="lede">How NUMIC is split into components, what each one owns, and how they work together to turn cranial ultrasound measurements into an explainable PHVD risk band. Each component has a requirements document: see the <a href="requirements/index.html">NUMIC requirements</a>.</p>
+      <p class="meta">Builds on the NUMIC overview and the rule-set design. Reflects the code on branch master: <code>src/numic</code>, <code>web/clinical-demo</code>.</p>
+      <div class="ver"><span class="v">Version 2</span><span class="d">6 Oct 2026</span><a href="#history">Change history</a></div>
+    </header>
+
+    <section id="map">
+      <h2>Component map</h2>
+      <p>Requests flow top to bottom. Cross-cutting services on the right apply to every layer. Codes match the requirement documents.</p>
+      <div class="map" role="img" aria-label="Layered component map of NUMIC">
+        <div class="stack">
+          <div class="band fe"><span class="lbl">Front end</span><div class="boxes">
+            <a class="box" href="requirements/CLN_clinician_app.html"><span>CLN</span><b>Clinician app</b><small>Patient view, trend chart, scan entry, decision capture</small></a>
+            <a class="box" href="requirements/DSH_unit_dashboard.html"><span>DSH</span><b>Unit dashboard</b><small>All babies in a NICU, latest band, overdue scans</small></a>
+            <a class="box" href="requirements/ADM_admin_console.html"><span>ADM</span><b>Admin console</b><small>Rule editor, approvals, users, audit viewer</small></a>
+          </div></div>
+          <div class="arrow" aria-hidden="true">↓ HTTPS · JSON</div>
+          <div class="band core"><span class="lbl">API</span><div class="boxes">
+            <a class="box" href="requirements/API_api_layer.html"><span>API</span><b>FastAPI /api/v1</b><small>Thin layer: checks the caller, validates, calls the core, returns explanations</small></a>
+          </div></div>
+          <div class="arrow" aria-hidden="true">↓ Python calls</div>
+          <div class="band core"><span class="lbl">Core logic</span><div class="boxes">
+            <a class="box" href="requirements/RUL_rule_engine.html"><span>RUL</span><b>Rule engine</b><small>Rule-set revisions, approval, reference tables</small></a>
+            <a class="box" href="requirements/SCR_scoring_engine.html"><span>SCR</span><b>Scoring engine</b><small>Plain library: age, reference lines, layers, band</small></a>
+            <a class="box" href="requirements/MEA_measurement_capture.html"><span>MEA</span><b>Measurement capture</b><small>Manual, spreadsheet, overlay/PACS, DICOM</small></a>
+            <a class="box" href="requirements/PAT_patient_unit_management.html"><span>PAT</span><b>Patients &amp; units</b><small>Babies, DOB, gestational age, NICU units</small></a>
+            <a class="box" href="requirements/DEC_decisions_outcomes.html"><span>DEC</span><b>Decisions &amp; outcomes</b><small>Clinician band, actions, interventions</small></a>
+          </div></div>
+          <div class="arrow" aria-hidden="true">↓ SQLAlchemy</div>
+          <div class="band data"><span class="lbl">Data</span><div class="boxes">
+            <a class="box" href="requirements/DAT_data_layer.html"><span>DAT</span><b>PostgreSQL + migrations</b><small>Patients, scans, results, revisions, decisions, outcomes, audit</small></a>
+          </div></div>
+          <div class="band ext"><span class="lbl">Extensions</span><div class="boxes">
+            <a class="box" href="requirements/LRN_learning_loop.html"><span>LRN</span><b>Learning loop</b><small>Agreement dashboard, threshold suggestions (offline)</small></a>
+            <a class="box" href="requirements/EXT_future_extensions.html"><span>EXT</span><b>Future extensions</b><small>PACS/EHR integration, image measurement, notifications</small></a>
+          </div></div>
+        </div>
+        <div class="side cross"><span class="lbl">Cross-cutting</span>
+          <a class="box" href="requirements/IAM_identity_access.html"><span>IAM</span><b>Identity &amp; access</b><small>Hospital sign-in, roles, unit scoping</small></a>
+          <a class="box" href="requirements/LOG_audit_logging_monitoring.html"><span>LOG</span><b>Audit, logs, monitoring</b><small>Audit trail, app logs without patient data, health</small></a>
+          <a class="box" href="requirements/CFG_configuration.html"><span>CFG</span><b>Configuration</b><small>Deployment and display settings</small></a>
+          <a class="box" href="requirements/SEC_security_compliance.html"><span>SEC</span><b>Security &amp; compliance</b><small>Encryption, UK hosting, DCB0129, DPIA</small></a>
+          <a class="box" href="requirements/RPT_reporting_export.html"><span>RPT</span><b>Reporting &amp; export</b><small>Assessment report, handover summary</small></a>
+        </div>
+      </div>
+    </section>
+
+    <section id="principles">
+      <h2>Principles</h2>
+      <div class="principles">
+        <div><b>Scoring is a plain library</b><p>The scoring engine has no web or database code. The API, the analytics job and the public demo all call the same logic, and it can be tested on its own.</p></div>
+        <div><b>Clinical rules are versioned data</b><p>Thresholds live in rule-set revisions, not in code or environment settings. A published revision never changes, and every result names the revision that produced it.</p></div>
+        <div><b>A person stays in charge</b><p>NUMIC suggests a band and explains it. Clinicians decide. Rule changes, including suggestions from data, need an approver.</p></div>
+        <div><b>Everything is explainable</b><p>Every result carries its layer points, the reference values used, the age at scan and any rule that raised the band.</p></div>
+        <div><b>Audit everything, log nothing personal</b><p>The audit trail records who did what to which record. Application logs never contain patient identifiers.</p></div>
+        <div><b>Two separate deployments</b><p>The public demo uses synthetic data, has no login, and keeps visitor entries in private sandboxes. The clinical system has sign-in, a governed database and approvals. They share the scoring engine and rule-set files.</p></div>
+      </div>
+    </section>
+
+    <section id="components">
+      <h2>Components</h2>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Code</th><th>Component</th><th>Responsible for</th><th>Owns</th><th>Today</th></tr></thead>
+        <tbody>
+          <tr><td class="code">CLN</td><td><a href="requirements/CLN_clinician_app.html">Clinician app</a></td><td>Patient view with trend chart and explained band, scan entry, decision capture</td><td>No data; screen state only</td><td><span class="st part">Partly</span> <code>web/clinical-demo</code></td></tr>
+          <tr><td class="code">DSH</td><td><a href="requirements/DSH_unit_dashboard.html">Unit dashboard</a></td><td>Status of every active baby in a NICU: band, change, last scan, overdue scans</td><td>No data</td><td><span class="st no">No</span></td></tr>
+          <tr><td class="code">ADM</td><td><a href="requirements/ADM_admin_console.html">Admin console</a></td><td>Rule editor, approvals, users and roles, unit settings, audit viewer, agreement dashboard</td><td>No data</td><td><span class="st no">No</span></td></tr>
+          <tr><td class="code">API</td><td><a href="requirements/API_api_layer.html">API layer</a></td><td>FastAPI <code>/api/v1</code>: authentication checks, validation, calling the core, errors, OpenAPI</td><td>Request and response models</td><td><span class="st part">Partly</span> <code>api/v1</code></td></tr>
+          <tr><td class="code">RUL</td><td><a href="requirements/RUL_rule_engine.html">Rule engine</a></td><td>Rule-set families and revisions, drafts, validation, impact preview, approval, rollback, reference tables</td><td>Rule-set revisions, reference tables</td><td><span class="st part">Partly</span> hard-coded in <code>scoring/rules</code></td></tr>
+          <tr><td class="code">SCR</td><td><a href="requirements/SCR_scoring_engine.html">Scoring engine</a></td><td>Age at scan, reference-line lookup, static, progression and clinical layers, combining, minimum-band rules, explanation</td><td>Nothing stored</td><td><span class="st yes">Yes</span> <code>scoring/</code></td></tr>
+          <tr><td class="code">MEA</td><td><a href="requirements/MEA_measurement_capture.html">Measurement capture</a></td><td>Manual entry, spreadsheet import, overlay/PACS feeds, DICOM, validation, corrections</td><td>Scans and measurements</td><td><span class="st yes">Yes</span> <code>measurement/</code></td></tr>
+          <tr><td class="code">PAT</td><td><a href="requirements/PAT_patient_unit_management.html">Patients &amp; units</a></td><td>NICU units, babies (DOB, gestational age at birth), admission, transfer, discharge</td><td>Units, patients, stays</td><td><span class="st no">No</span></td></tr>
+          <tr><td class="code">DEC</td><td><a href="requirements/DEC_decisions_outcomes.html">Decisions &amp; outcomes</a></td><td>Clinician's final band with timestamps and reasons; interventions and other outcomes</td><td>Decisions, outcome events</td><td><span class="st no">No</span></td></tr>
+          <tr><td class="code">DAT</td><td><a href="requirements/DAT_data_layer.html">Data layer</a></td><td>PostgreSQL schema, migrations, integrity, backups, retention</td><td>All stored data</td><td><span class="st part">Partly</span> models in <code>db/</code>, no migrations</td></tr>
+          <tr><td class="code">IAM</td><td><a href="requirements/IAM_identity_access.html">Identity &amp; access</a></td><td>Hospital sign-in (OIDC), roles, unit scoping, sessions, service accounts</td><td>Role assignments</td><td><span class="st no">No</span></td></tr>
+          <tr><td class="code">LOG</td><td><a href="requirements/LOG_audit_logging_monitoring.html">Audit, logs, monitoring</a></td><td>Append-only audit trail, structured app logs without patient data, health and metrics</td><td>Audit records</td><td><span class="st part">Partly</span> <code>/health</code> only</td></tr>
+          <tr><td class="code">CFG</td><td><a href="requirements/CFG_configuration.html">Configuration</a></td><td>Deployment settings (<code>NUMIC_*</code>), unit settings, demo display config</td><td>Unit settings</td><td><span class="st part">Partly</span> <code>core/config.py</code></td></tr>
+          <tr><td class="code">SEC</td><td><a href="requirements/SEC_security_compliance.html">Security &amp; compliance</a></td><td>Encryption, UK hosting, testing, clinical safety (DCB0129/0160), DPIA, DSPT, device route</td><td>Safety and compliance records</td><td><span class="st no">No</span></td></tr>
+          <tr><td class="code">RPT</td><td><a href="requirements/RPT_reporting_export.html">Reporting &amp; export</a></td><td>Printable assessment report, unit handover summary</td><td>No data</td><td><span class="st no">No</span></td></tr>
+          <tr><td class="code">LRN</td><td><a href="requirements/LRN_learning_loop.html">Learning loop</a></td><td>Agreement dashboard, pseudonymised extract, threshold suggestions as draft revisions</td><td>Suggestions, analysis snapshots</td><td><span class="st no">No</span></td></tr>
+          <tr><td class="code">EXT</td><td><a href="requirements/EXT_future_extensions.html">Future extensions</a></td><td>PACS and electronic-record integration, image-based measurement, notifications</td><td>Depends on extension</td><td><span class="st part">Partly</span> image stub in <code>measurement/extractor.py</code></td></tr>
+          <tr><td class="code">DEMO</td><td><a href="requirements/DEMO_public_demo.html">Public demo</a></td><td>Hosted demo at <code>demo.numic.uk</code> on Railway: Levene scoring, 10 synthetic babies, a private sandbox per visitor</td><td>Seed babies, visitor sandboxes</td><td><span class="st part">Partly</span> demo UI, not hosted</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="flows">
+      <h2>Key flows</h2>
+      <div class="flows">
+        <div class="flow"><h3>Score a new scan</h3><ol>
+          <li>Clinician signs in <span class="c">IAM</span> and opens the baby <span class="c">CLN · PAT</span>.</li>
+          <li>Enters scan date/time and VI, AHW, TOD <span class="c">MEA</span>, plus clinical concern.</li>
+          <li>API checks the role and unit, then loads date of birth and gestational age <span class="c">API · PAT</span>.</li>
+          <li>Rule engine supplies the active revision, e.g. <code>numic_flow_levene@1</code> <span class="c">RUL</span>.</li>
+          <li>Scoring engine works out age at scan, reference lines, layer points, band and explanation <span class="c">SCR</span>.</li>
+          <li>Result and inputs are stored with the revision ID <span class="c">DAT</span>, and the action is audited <span class="c">LOG</span>.</li>
+          <li>Clinician sees the band, reasons and trend chart <span class="c">CLN</span>.</li>
+        </ol></div>
+        <div class="flow"><h3>Record the clinician's decision</h3><ol>
+          <li>Decision capture is switched on for the deployment <span class="c">CFG</span>.</li>
+          <li>Clinician records the final band, reasons and action <span class="c">CLN · DEC</span>.</li>
+          <li>NUMIC stores it against the result with decided-at and recorded-at times. Corrections replace, never edit <span class="c">DEC · DAT</span>.</li>
+          <li>Later, interventions such as lumbar puncture or shunt are recorded as outcomes <span class="c">DEC</span>.</li>
+          <li>Unit dashboard shows any results still waiting for a decision <span class="c">DSH</span>.</li>
+        </ol></div>
+        <div class="flow"><h3>Change a rule set</h3><ol>
+          <li>Admin opens the published revision and clicks Edit, which creates a pre-filled draft <span class="c">ADM · RUL</span>.</li>
+          <li>Rule engine validates the draft and previews which recent results would change band <span class="c">RUL · SCR</span>.</li>
+          <li>A different person with the approver role approves with a reason <span class="c">ADM · IAM</span>.</li>
+          <li>The draft is published as a new revision and becomes active. Old results keep their revision <span class="c">RUL · DAT</span>.</li>
+          <li>Every step is in the audit trail <span class="c">LOG</span>.</li>
+        </ol></div>
+        <div class="flow"><h3>Learn from decisions and outcomes</h3><ol>
+          <li>A scheduled job takes a pseudonymised extract <span class="c">LRN · DAT</span>.</li>
+          <li>Agreement dashboard compares predicted and clinician bands <span class="c">LRN · ADM</span>.</li>
+          <li>With enough cases, a regression proposes thresholds as a draft revision with evidence <span class="c">LRN · RUL</span>.</li>
+          <li>The draft follows the normal approval flow. Nothing is applied automatically <span class="c">ADM</span>.</li>
+        </ol></div>
+      </div>
+    </section>
+
+    <section id="deployments">
+      <h2>Deployments</h2>
+      <div class="deploy">
+        <div class="dep"><span class="tag">Public</span><h3>Demo at demo.numic.uk</h3><ul>
+          <li>One Railway service running FastAPI, which serves the demo pages and the API, plus a Railway PostgreSQL database.</li>
+          <li>Linked from the Carrd site on numic.uk; <code>demo.numic.uk</code> points to Railway.</li>
+          <li>Levene rule set only, 10 synthetic babies, and a private sandbox per visitor. No login.</li>
+          <li>Details in <a href="#demo">Demo deployment</a> below.</li>
+        </ul></div>
+        <div class="dep"><span class="tag">Clinical</span><h3>Hospital deployment</h3><ul>
+          <li>Front end, API and PostgreSQL hosted in the UK, signed in through the hospital's identity provider.</li>
+          <li>All components except <code>DEMO</code>. Decision capture and the learning loop are switched on per deployment.</li>
+          <li>Needs clinical safety (DCB0129/0160), DPIA and information-governance approval before real patient data.</li>
+          <li>One deployment per trust or network to start, so data stays with its owner. Shared hosting is an open decision.</li>
+        </ul></div>
+      </div>
+    </section>
+
+    <section id="demo">
+      <h2>Demo deployment</h2>
+      <p>Decided on 6 Oct 2026. The demo uses the real Python backend so that visitors see the actual system, kept small enough to build and run cheaply.</p>
+      <h3>Components in the demo</h3>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Component</th><th>In the demo</th></tr></thead>
+        <tbody>
+          <tr><td><a href="requirements/RUL_rule_engine.html">Rule engine</a></td><td><code>numic_flow_levene</code> only, loaded from its JSON file. No drafts, editing or approval. Brouwer is added later.</td></tr>
+          <tr><td><a href="requirements/SCR_scoring_engine.html">Scoring engine</a></td><td>Complete: age at scan, Levene VI line, fixed AHW and TOD cut-offs, progression, clinical layer, band and explanation.</td></tr>
+          <tr><td><a href="requirements/CLN_clinician_app.html">Clinician app</a></td><td>Baby list, baby view with trend chart and explained band, add baby, add scan. No decision capture.</td></tr>
+          <tr><td>Thin slices</td><td><a href="requirements/API_api_layer.html">API</a> endpoints for the above; <a href="requirements/PAT_patient_unit_management.html">patients</a> (one demo NICU); <a href="requirements/MEA_measurement_capture.html">measurements</a> (manual entry only); <a href="requirements/DAT_data_layer.html">data layer</a> (PostgreSQL and migrations for these tables); <a href="requirements/CFG_configuration.html">configuration</a>; basic <a href="requirements/LOG_audit_logging_monitoring.html">app logs</a>.</td></tr>
+          <tr><td>Not in the demo</td><td>Unit dashboard, admin console, login and roles, decisions and outcomes, learning loop, reports, integrations.</td></tr>
+        </tbody>
+      </table></div>
+      <h3>Hosting</h3>
+      <div class="flow"><ol>
+        <li>Visitor clicks the demo link on <strong>numic.uk</strong> (Carrd).</li>
+        <li><strong>demo.numic.uk</strong> (CNAME at Namecheap) points to one Railway service running FastAPI.</li>
+        <li>FastAPI serves the clinician app pages and <code>/api/v1</code> from the same address, so no cross-site setup is needed.</li>
+        <li>FastAPI reads and writes a Railway <strong>PostgreSQL</strong> database in the same project. PostgreSQL rather than MySQL, because the database models already use PostgreSQL-specific types (<code>JSONB</code>, <code>UUID</code>) and the asyncpg driver.</li>
+      </ol></div>
+      <h3>Data: seed babies and visitor sandboxes</h3>
+      <ul>
+        <li><strong>10 synthetic babies</strong> in one demo NICU, shared by everyone and read-only. Their dates are stored as offsets from today and rebuilt daily, so ages stay realistic. The set covers mostly low, some moderate and at least two high bands, plus one first-scan-only baby and one out-of-chart-range scan.</li>
+        <li><strong>A private sandbox per visitor</strong>, created on the first visit and identified by a random token kept in the browser and sent in a request header. A header works even when the demo is embedded in another site, where browsers often block cookies.</li>
+        <li><strong>Babies and scans carry a sandbox ID.</strong> Seed rows have none. Each visitor sees the seed rows plus their own, never anyone else's. A scan added to a seed baby changes that baby's chart only for that visitor.</li>
+        <li><strong>Patient IDs are generated automatically</strong> (e.g. <code>DEMO-7K3Q</code>). There are no name or free-text fields.</li>
+        <li><strong>Limits and clean-up</strong> (proposed): 20 babies and 30 scans per baby per sandbox, 60 writes a minute per IP address, and sandboxes deleted after 7 days without activity.</li>
+      </ul>
+      <p><strong>Before launch:</strong> the Levene 97th-centile values must be taken from Levene 1981 and checked by a clinician. Full requirements: <a href="requirements/DEMO_public_demo.html">Public demo</a>.</p>
+    </section>
+
+    <section id="tech">
+      <h2>Technology</h2>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Area</th><th>Today</th><th>Proposed</th></tr></thead>
+        <tbody>
+          <tr><td>Language and API</td><td>Python 3.11+, FastAPI, Pydantic v2, Uvicorn</td><td>Keep</td></tr>
+          <tr><td>Database</td><td>SQLAlchemy 2 (async) models for PostgreSQL via asyncpg; not used by the demo</td><td>PostgreSQL with Alembic migrations</td></tr>
+          <tr><td>Front end</td><td>Plain HTML, CSS and ES modules, served by FastAPI at <code>/clinical-demo/</code></td><td>Open: stay framework-free or adopt a framework for the clinician app, dashboard and admin console</td></tr>
+          <tr><td>Sign-in</td><td>None</td><td>OIDC with the hospital identity provider (e.g. NHS / Microsoft Entra ID)</td></tr>
+          <tr><td>Imaging input</td><td>pydicom, Pillow; image extraction stubbed</td><td>Keep; image measurement only after validation</td></tr>
+          <tr><td>Spreadsheets</td><td>openpyxl for CSV/XLSX import</td><td>Keep</td></tr>
+          <tr><td>Analytics</td><td>None</td><td>statsmodels or scikit-learn in a separate offline job</td></tr>
+          <tr><td>Tests</td><td>pytest, httpx</td><td>Keep; add rule-set parity tests for the browser demo</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="phases">
+      <h2>Build order</h2>
+      <p>Each phase is usable on its own and builds on the one before.</p>
+      <ol class="phases">
+        <li><b>Levene rule set</b><span>Levene reference table, age at scan, explanation output, rule-set JSON file for <code>numic_flow_levene</code>.</span><span class="codes">SCR · RUL (file only)</span></li>
+        <li><b>Hosted demo</b><span>Railway with FastAPI and PostgreSQL at demo.numic.uk: clinician app, 10 synthetic babies, visitor sandboxes, generated patient IDs.</span><span class="codes">DEMO · CLN · API · PAT · MEA · DAT · CFG (demo slices)</span></li>
+        <li><b>Brouwer rule set</b><span>Brouwer tables and 2-point rules once decided, added to the demo and the core.</span><span class="codes">SCR · RUL</span></li>
+        <li><b>Foundations for real data</b><span>Full patients and units, sign-in and roles, audit trail, settings, security work.</span><span class="codes">DAT · PAT · MEA · IAM · LOG · CFG · SEC</span></li>
+        <li><b>Clinical screens</b><span>Clinician app for real use, unit dashboard, assessment report.</span><span class="codes">CLN · DSH · RPT · API</span></li>
+        <li><b>Governed rule changes</b><span>Admin console with rule editor, impact preview, approval and rollback.</span><span class="codes">ADM · RUL</span></li>
+        <li><b>Decisions, agreement and learning</b><span>Decision and outcome capture, agreement dashboard, threshold suggestions, integrations.</span><span class="codes">DEC · LRN · EXT</span></li>
+      </ol>
+    </section>
+
+    <section id="open">
+      <h2>Open architecture decisions</h2>
+      <ul>
+        <li><strong>Front-end approach</strong>: stay with plain ES modules or adopt a framework once there are three apps.</li>
+        <li><strong>Hosting</strong>: the demo runs on Railway; the clinical deployment still needs UK or NHS-approved hosting and an operator.</li>
+        <li><strong>Demo running cost</strong>: Railway plan, keeping the service awake, and database size.</li>
+        <li><strong>One deployment per trust or shared hosting</strong> with strict separation between units.</li>
+        <li><strong>Identity provider</strong> per pilot site, and whether NUMIC holds any role data itself.</li>
+        <li><strong>Where rule-set revisions live</strong>: database only, or database plus exported JSON for the demo and audits.</li>
+        <li><strong>Clinical decisions still open in the rule-set design</strong>: Brouwer 2-point thresholds, minimum-band rules, first-scan policy.</li>
+      </ul>
+    </section>
+
+    <section id="history">
+      <h2>Change history</h2>
+      <div class="tablewrap hist"><table>
+        <thead><tr><th>Version</th><th>Date</th><th>Changes</th></tr></thead>
+        <tbody><tr><td class="vn">v2</td><td class="dt">6 Oct 2026</td><td><b>Demo deployment</b>: Railway with FastAPI and PostgreSQL, Levene only, 10 synthetic babies, visitor sandboxes, generated patient IDs, no unit dashboard. Build order reordered; principles, deployments and component table updated.</td></tr><tr><td class="vn">v1</td><td class="dt">5 Oct 2026</td><td><b>First version</b>: component map, principles, components, key flows, deployments, technology, build order, open decisions.</td></tr></tbody>
+      </table></div>
+    </section>
+
+    <footer>NUMIC system architecture · version 2. Design document for discussion; not regulatory or clinical guidance.</footer>
+  </main>
+</div>
+</body>
+</html>

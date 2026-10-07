@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NUMIC — Pitch Deck</title>
+
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/theme/white.css" id="theme" />
+
+  <style>
+    :root {
+      --navy: #1e3a5f;
+      --navy-deep: #122842;
+      --blue: #3b82f6;
+      --blue-soft: #eff6ff;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --low: #22c55e;
+      --mod: #eab308;
+      --high: #ef4444;
+      --bg: #f8fafc;
+    }
+
+    .reveal {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      font-size: 30px;
+      color: var(--text);
+    }
+    .reveal .slides { text-align: left; }
+    .reveal .slides section { padding: 0 24px; }
+
+    .reveal h1, .reveal h2, .reveal h3 {
+      font-family: inherit;
+      color: var(--navy);
+      text-transform: none;
+      letter-spacing: -0.02em;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+    .reveal h1 { font-size: 2.0em; }
+    .reveal h2 { font-size: 1.35em; margin-bottom: 0.5em; }
+    .reveal h3 { font-size: 1.0em; color: var(--blue); }
+    .reveal p, .reveal li { line-height: 1.4; }
+    .reveal strong { color: var(--navy); }
+    .reveal em { color: var(--muted); font-style: italic; }
+    .reveal a { color: var(--blue); }
+
+    .reveal ul { margin-left: 1.1em; }
+    .reveal li { margin: 0.35em 0; }
+
+    /* Eyebrow / section label */
+    .eyebrow {
+      display: inline-block;
+      font-size: 0.5em;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--blue);
+      background: var(--blue-soft);
+      padding: 0.35em 0.8em;
+      border-radius: 999px;
+      margin-bottom: 0.7em;
+    }
+
+    .muted { color: var(--muted); }
+    .small { font-size: 0.7em; }
+    .tiny { font-size: 0.55em; }
+    .center { text-align: center; }
+
+    /* Title slide */
+    .reveal .slides section.title-slide {
+      text-align: center;
+    }
+    .title-stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 26em;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .logo {
+      font-size: 2.6em;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+      color: var(--navy);
+      margin: 0 0 0.2em;
+    }
+    .tagline {
+      font-size: 0.95em;
+      color: var(--muted);
+      width: 100%;
+      margin: 0 0 1.2em;
+      padding: 0;
+      text-align: center;
+    }
+    .title-stack .bands {
+      width: 100%;
+      max-width: 20em;
+      margin: 0 0 1.2em;
+    }
+    .title-meta {
+      font-size: 0.62em;
+      color: var(--muted);
+      border-top: 1px solid var(--border);
+      padding-top: 1em;
+      width: 100%;
+      max-width: 20em;
+      margin: 0;
+    }
+
+    /* Risk band chips */
+    .bands { display: flex; gap: 12px; margin: 0.6em 0; }
+    .band {
+      flex: 1;
+      border-radius: 12px;
+      padding: 0.7em 0.6em;
+      color: #fff;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.7em;
+      box-shadow: 0 2px 8px rgba(15,23,42,0.12);
+    }
+    .band span { display: block; font-weight: 400; font-size: 0.8em; opacity: 0.92; margin-top: 0.2em; }
+    .band.low { background: var(--low); }
+    .band.mod { background: var(--mod); color: #422006; }
+    .band.high { background: var(--high); }
+
+    /* Cards / grids */
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+    .grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .card {
+      background: #fff;
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--blue);
+      border-radius: 12px;
+      padding: 0.8em 0.9em;
+      box-shadow: 0 1px 3px rgba(15,23,42,0.06);
+    }
+    .card h3 { margin: 0 0 0.3em; }
+    .card p { margin: 0; font-size: 0.72em; }
+
+    /* NumicFlow formula */
+    .flow {
+      display: flex;
+      align-items: stretch;
+      gap: 10px;
+      margin: 0.8em 0;
+      font-size: 0.62em;
+    }
+    .flow .layer {
+      flex: 1;
+      background: var(--blue-soft);
+      border: 1px solid #bfdbfe;
+      border-radius: 12px;
+      padding: 0.8em 0.6em;
+      text-align: center;
+    }
+    .flow .layer b { display: block; color: var(--navy); font-size: 1.15em; }
+    .flow .layer .rng { color: var(--blue); font-weight: 700; }
+    .flow .op {
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6em; color: var(--muted); font-weight: 700;
+    }
+    .flow .total {
+      flex: 1.05;
+      background: var(--navy);
+      color: #fff;
+      border-radius: 12px;
+      padding: 0.8em 0.6em;
+      text-align: center;
+      border: 1px solid var(--navy);
+    }
+    .flow .total b { display: block; color: #fff; font-size: 1.15em; }
+    .flow .total .rng { color: #93c5fd; font-weight: 700; }
+
+    /* Stat blocks */
+    .stats { display: flex; gap: 26px; margin-top: 0.4em; }
+    .stat { text-align: center; flex: 1; }
+    .stat .num { font-size: 1.7em; font-weight: 800; color: var(--blue); line-height: 1; }
+    .stat .lbl { font-size: 0.6em; color: var(--muted); margin-top: 0.4em; }
+
+    /* Two-column problem/solution */
+    .split { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; align-items: start; }
+    .split .col h3 { margin-top: 0; }
+    .panel-bad { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 0.8em 1em; }
+    .panel-good { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 0.8em 1em; }
+    .panel-bad h3 { color: var(--high); }
+    .panel-good h3 { color: #16a34a; }
+    .panel-bad ul, .panel-good ul { margin: 0; }
+    .panel-bad li, .panel-good li { font-size: 0.72em; }
+
+    /* Roadmap timeline */
+    .timeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 0.6em; }
+    .phase { position: relative; }
+    .phase .when { font-size: 0.55em; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--blue); }
+    .phase .bar { height: 6px; border-radius: 4px; background: var(--blue); margin: 0.4em 0; opacity: 0.85; }
+    .phase:nth-child(1) .bar { opacity: 1; }
+    .phase:nth-child(2) .bar { opacity: 0.7; }
+    .phase:nth-child(3) .bar { opacity: 0.5; }
+    .phase:nth-child(4) .bar { opacity: 0.32; }
+    .phase ul { margin: 0.2em 0 0 0.9em; }
+    .phase li { font-size: 0.6em; }
+
+    /* Footer disclaimer */
+    .disclaimer {
+      position: fixed; bottom: 8px; left: 0; right: 0;
+      text-align: center; font-size: 11px; color: #94a3b8;
+    }
+
+    /* Ask slide */
+    .ask-list { font-size: 0.85em; }
+    .ask-list li { margin: 0.5em 0; }
+
+    .reveal .slide-number { background: transparent; color: var(--muted); }
+
+    table.clean { width: 100%; border-collapse: collapse; font-size: 0.68em; }
+    table.clean td { padding: 0.4em 0.6em; border-bottom: 1px solid var(--border); vertical-align: top; }
+    table.clean td:first-child { font-weight: 700; color: var(--navy); white-space: nowrap; width: 30%; }
+  </style>
+</head>
+<body>
+<div class="reveal">
+  <div class="slides">
+
+    <!-- 1. TITLE -->
+    <section class="title-slide" data-background-color="#ffffff">
+      <div class="title-stack">
+        <div class="logo">NUMIC</div>
+        <p class="tagline">Turning preterm serial head ultrasounds into a single, explainable risk band the whole team can use.</p>
+        <div class="bands">
+          <div class="band low">LOW</div>
+          <div class="band mod">MODERATE</div>
+          <div class="band high">HIGH</div>
+        </div>
+        <div class="title-meta">
+          <strong>Eswari Mathialagan</strong> · Founder &amp; Software Developer
+        </div>
+      </div>
+      <aside class="notes">
+        Open with confidence and a hook, not a definition. Something like: "Some of the most fragile patients in any hospital are premature babies — and one of the biggest threats to them is bleeding on the brain. Today, teams track that risk by hand. NUMIC turns it into one clear, explainable number."
+        Say the name and what it is in one breath: "NUMIC is decision-support software for the preterm brain."
+        Point at the three coloured bands — low, moderate, high. That's the whole product in one image: we turn scattered ultrasound measurements into a single, explainable risk band the whole team can use. Promise you'll show exactly how in 90 seconds.
+        Keep this slide to ~20 seconds. Energy and eye contact, then move.
+      </aside>
+    </section>
+
+    <!-- 2. PROBLEM -->
+    <section data-background-color="#ffffff">
+      <span class="eyebrow">The problem</span>
+      <h2>Tracking a fragile brain is manual, slow, and inconsistent</h2>
+      <p style="font-size: 0.8em;">In preterm babies, bleeding around the brain (<strong>IVH</strong>) can lead to fluid-filled spaces enlarging — <strong>post-haemorrhagic ventricular dilation (PHVD)</strong>. Care hinges on <strong>how large</strong> those spaces are, <strong>how fast</strong> they change, and <strong>how the baby is doing</strong>.</p>
+      <div class="grid3" style="margin-top: 0.6em;">
+        <div class="card"><h3>Repetitive</h3><p>Staff manually trace back through prior scans and dates to re-check every measurement against agreed cut-offs.</p></div>
+        <div class="card"><h3>Inconsistent</h3><p>Progression is described qualitatively — "a bit bigger" — not summarised the same way at every handover.</p></div>
+        <div class="card"><h3>Time-pressured</h3><p>This sustained attention competes with everything else on a busy neonatal unit.</p></div>
+      </div>
+      <p class="small muted" style="margin-top: 0.7em;">There is <strong>no single, widely adopted summary</strong> that combines absolute size, rate of change, and clinical context for handover and audit.</p>
+      <aside class="notes">
+        Tell it as a scene: a busy neonatal unit, a baby who's had a brain bleed, a new head ultrasound just came back. To know if things are getting worse, a clinician has to dig back through previous scans and dates, re-measure against agreed cut-offs, and hold the whole trend in their head — while juggling everything else.
+        Three failure modes, one per card: it's repetitive, it's inconsistent (the dreaded "looks a bit bigger" handover), and it's done under time pressure.
+        The punchline at the bottom: despite this being high-stakes, there is no single, shared summary that combines size, rate of change, and clinical context. That gap is the opening for NUMIC.
+        Resist the urge to solve it yet — just make them feel the pain. ~30 seconds.
+      </aside>
+    </section>
+
+    <!-- 3. WHY IT MATTERS -->
+    <section data-background-color="#122842">
+      <span class="eyebrow" style="background: rgba(59,130,246,0.25); color:#bfdbfe;">Why it matters</span>
+      <h2 style="color:#fff;">The stakes are developmental — and at population scale</h2>
+      <div class="stats" style="margin-top: 0.2em;">
+        <div class="stat"><div class="num" style="color:#93c5fd;">up to 15%</div><div class="lbl" style="color:#cbd5e1;">of extremely preterm infants have severe IVH</div></div>
+        <div class="stat"><div class="num" style="color:#93c5fd;">&gt;50%</div><div class="lbl" style="color:#cbd5e1;">of those go on to develop PHVD</div></div>
+        <div class="stat"><div class="num" style="color:#93c5fd;">#1</div><div class="lbl" style="color:#cbd5e1;">preterm birth = biggest cause of neonatal death &amp; illness in the UK</div></div>
+      </div>
+      <ul style="color:#e2e8f0; font-size: 0.74em; margin-top: 0.7em;">
+        <li>PHVD is linked to <strong style="color:#fff;">patterns of brain injury</strong> and weaker long-term development in preterm infants.</li>
+        <li>Care leans heavily on <strong style="color:#fff;">repeat head ultrasound</strong> — size <em style="color:#cbd5e1;">and</em> trajectory — so teams can act in good time, along consistent local pathways.</li>
+      </ul>
+      <p class="tiny" style="color:#93c5fd; margin-top: 0.8em;">Clinical context, not a product proof. Sources:
+        <a href="https://doi.org/10.1016/j.jpeds.2020.07.079" style="color:#bfdbfe;">El-Dib et al., J Pediatr 2020</a> ·
+        <a href="https://www.gov.uk/government/publications/government-response-to-the-house-of-lords-inquiry-into-preterm-birth-reducing-risks-and-improving-lives/government-response-to-the-house-of-lords-inquiry-into-preterm-birth-reducing-risks-and-improving-lives" style="color:#bfdbfe;">GOV.UK preterm birth response 2024</a> ·
+        <a href="https://doi.org/10.1136/bmj-2023-075630" style="color:#bfdbfe;">Mitha et al., BMJ 2024</a>.</p>
+      <aside class="notes">
+        This is the emotional and clinical core of the pitch — slow down here.
+        The numbers: severe brain bleeds occur in up to 15% of the most premature babies, and more than half of those progress to PHVD. Preterm birth is the single biggest cause of neonatal death and illness in the UK.
+        Why it matters beyond the bleed: PHVD is linked to lasting brain injury — motor and cognitive problems that follow a child for life. Getting the monitoring right in those first weeks genuinely changes trajectories.
+        The clinical reality: there is no fancy continuous monitor for this. The workhorse is repeat head ultrasound, and what matters is not just one number but the trend across scans. That's exactly the judgment NUMIC structures.
+        Honesty line if asked: these figures frame the problem; they are not a claim that NUMIC improves outcomes. That requires clinical validation — which is on our roadmap.
+      </aside>
+    </section>
+
+    <!-- 4. SOLUTION -->
+    <section data-background-color="#ffffff">
+      <span class="eyebrow">The solution</span>
+      <h2>NUMIC: one explainable risk band, from inputs you already use</h2>
+      <p style="font-size: 0.8em;">NUMIC is <strong>decision support software</strong>. It turns standard head-ultrasound numbers, the <strong>change since the last scan</strong>, and a short structured note on clinical concern into a single <strong>risk band</strong> — using transparent rules we call <strong>NumicFlow</strong>.</p>
+      <div class="split" style="margin-top: 0.5em;">
+        <div class="col">
+          <h3>Explainable, not a black box</h3>
+          <p class="small">The output shows <strong>how each part contributed</strong> (current size, change, clinical modifier) and <strong>which rule version</strong> was applied. The reasoning stays visible and repeatable.</p>
+        </div>
+        <div class="col">
+          <h3>Clinicians stay in charge</h3>
+          <p class="small">NUMIC <strong>does not choose treatment</strong>. Staff use the band to match local pathways — scan frequency, when to escalate, when to involve neurosurgery.</p>
+        </div>
+      </div>
+      <div class="bands" style="margin-top: 0.6em;">
+        <div class="band low">LOW<span>surveillance</span></div>
+        <div class="band mod">MODERATE<span>closer watch</span></div>
+        <div class="band high">HIGH<span>escalate per protocol</span></div>
+      </div>
+      <aside class="notes">
+        This is the "aha." Say it plainly: NUMIC takes the inputs teams already have — standard ultrasound measurements, the change since the last scan, and a short note on clinical concern — and returns one risk band.
+        Hit the two differentiators hard because judges will worry about both: (1) it's explainable — you can see exactly how each part contributed and which rule version produced it, so it's auditable, not a black box; and (2) the clinician stays in charge — NUMIC does not choose treatment, it maps to the unit's own pathway.
+        That second point is also your regulatory safety line: decision support, human-in-the-loop, not an autonomous diagnostic.
+        Gesture to the bands again — low means routine surveillance, high means escalate per local protocol. Same language at every handover.
+      </aside>
+    </section>
+
+    <!-- 5. HOW IT WORKS -->
+    <section data-background-color="#ffffff">
+      <span class="eyebrow">How it works — NumicFlow</span>
+      <h2>Three transparent layers → one score → a risk band</h2>
+      <div class="flow">
+        <div class="layer"><b>Size</b>How big key fluid-space measures are on the current scan<div class="rng">0–6</div></div>
+        <div class="op">+</div>
+        <div class="layer"><b>Progression</b>How much they have moved since the previous scan<div class="rng">0–6</div></div>
+        <div class="op">+</div>
+        <div class="layer"><b>Clinical</b>Structured concern level from the bedside<div class="rng">0–2</div></div>
+        <div class="op">=</div>
+        <div class="total"><b>NumicFlow</b>Total score → risk band<div class="rng">0–14</div></div>
+      </div>
+      <p class="small">Standard cUS metrics (ventricular index, anterior horn width, thalamo-occipital distance) feed the score. Every layer's points are <strong>surfaced with the total</strong> — never hidden.</p>
+      <p class="small muted">Thresholds live in <strong>named, versioned rule bundles</strong> (e.g. <code>numic_flow_v1</code>), so governance can approve changes and old results stay tied to a specific rule set.</p>
+      <aside class="notes">
+        Walk left to right across the diagram — this is the engine, so be crisp and confident.
+        Three layers: how big the fluid spaces are now (0–6), how much they've moved since the last scan (0–6), and a structured clinical-concern modifier from the bedside (0–2). Add them up: a single NumicFlow score from 0 to 14, which maps to the band.
+        Name-drop that we use the standard metrics clinicians already trust — ventricular index, anterior horn width, thalamo-occipital distance — so we fit existing practice rather than asking anyone to learn new measurements.
+        Two phrases to land: "every layer's points are shown, never hidden" (explainability) and "versioned rule bundles" (governance can approve changes, and an old result is always tied to the exact rules that produced it). That versioning is what makes this credible as medical software.
+        Don't go deeper than this unless asked — keep momentum.
+      </aside>
+    </section>
+
+    <!-- 6. PRODUCT / DEMO -->
+    <section data-background-color="#f8fafc">
+      <span class="eyebrow">Product &amp; demo</span>
+      <h2>A working prototype today — a real clinical product next</h2>
+      <div class="grid2">
+        <div class="card">
+          <h3>Built &amp; running</h3>
+          <p>A Python / FastAPI service accepts measurement records and returns NumicFlow scores and bands. A browser demo runs alongside it — <strong>prior vs current measurements</strong>, clinical modifier, and the explainable breakdown.</p>
+        </div>
+        <div class="card">
+          <h3>Designed for hospital reality</h3>
+          <p>Inputs work <strong>manually today</strong> — typed entry, spreadsheet import, simple numeric feeds — and from <strong>hospital systems later</strong> (PACS/workflow links), with audit built in: who, when, which rule version.</p>
+        </div>
+      </div>
+      <p class="small muted" style="margin-top: 0.7em;">The demo shows end-to-end behaviour; the real product is a governed clinical deployment, not the demo alone. <em>Live demo available.</em></p>
+      <aside class="notes">
+        Prove it's real, not slideware. "This isn't a concept deck — there's a working system today: a Python/FastAPI service that scores measurements, plus a browser demo that shows the explainable breakdown."
+        If you have a live demo or a screenshot: show prior vs current measurements going in, and the band plus per-layer breakdown coming out. Keep it to one example so you don't lose the room.
+        Address the obvious objection up front: it's built for hospital reality. Inputs work manually today (typed, spreadsheet import, numeric feeds) and connect to hospital systems like PACS later — with audit baked in: who entered it, when, and which rule version scored it.
+        Be clear the demo is a demonstration, not the regulated product. That honesty builds trust with clinical judges.
+      </aside>
+    </section>
+
+    <!-- 7. DIFFERENTIATION -->
+    <section data-background-color="#ffffff">
+      <span class="eyebrow">Why NUMIC is different</span>
+      <h2>It makes the judgment teams already make — visible and repeatable</h2>
+      <div class="split">
+        <div class="col panel-bad">
+          <h3>Today, without NUMIC</h3>
+          <ul>
+            <li>Manual re-checking of every prior measurement</li>
+            <li>Qualitative "looks bigger" handovers</li>
+            <li>Opaque, person-dependent reasoning</li>
+            <li>Hard to audit or learn from</li>
+          </ul>
+        </div>
+        <div class="col panel-good">
+          <h3>With NUMIC</h3>
+          <ul>
+            <li>Size + trajectory + context in one place</li>
+            <li>A shared, written risk band everyone reads the same</li>
+            <li>Per-part breakdown + rule version on every output</li>
+            <li>A clear record for governance and learning</li>
+          </ul>
+        </div>
+      </div>
+      <p class="small center muted" style="margin-top: 0.7em;"><strong>Explainable · versioned · human-in-the-loop</strong> — not an autonomous black box.</p>
+      <aside class="notes">
+        This is your moat slide. The comparison isn't really "NUMIC vs a competitor product" — it's "NUMIC vs the manual status quo," which is what teams do today.
+        Run the contrast quickly: left is today — manual re-checking, qualitative handovers, person-dependent reasoning, hard to audit. Right is with NUMIC — size plus trajectory plus context in one place, a shared written band, a per-part breakdown with rule version, and a clean record for governance.
+        If a judge asks about AI competitors doing image segmentation: that's complementary and it's on our roadmap — but it only matters after the scoring layer exists and is validated. We own the explainable scoring and workflow layer.
+        Close on the three words: explainable, versioned, human-in-the-loop. In regulated healthcare, that's a feature, not a limitation.
+      </aside>
+    </section>
+
+    <!-- 8. MARKET & BUSINESS MODEL -->
+    <section data-background-color="#ffffff">
+      <span class="eyebrow">Market &amp; business model</span>
+      <h2>B2B SaaS for NHS trusts &amp; neonatal networks</h2>
+      <div class="grid2" style="margin-top: 0.4em;">
+        <div>
+          <h3>Model</h3>
+          <ul class="small">
+            <li><strong>Annual licence</strong> per NHS trust or neonatal network</li>
+            <li><strong>Optional pilot pricing</strong> in year one</li>
+            <li><strong>Setup / integration fees</strong> where needed</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Why now</h3>
+          <ul class="small">
+            <li>Neonatal brain care is a <strong>public-health-scale</strong> issue</li>
+            <li>Care already anchored to <strong>serial imaging</strong> — we fit the existing workflow</li>
+            <li>Growing demand for <strong>explainable, auditable</strong> clinical software</li>
+          </ul>
+        </div>
+      </div>
+      <div class="stats" style="margin-top: 0.8em;">
+        <div class="stat"><div class="num">~53,000</div><div class="lbl">preterm births / year in England &amp; Wales</div></div>
+        <div class="stat"><div class="num">153</div><div class="lbl">neonatal units in England</div></div>
+        <div class="stat"><div class="num">10</div><div class="lbl">NHS neonatal critical care networks</div></div>
+      </div>
+      <p class="tiny muted" style="margin-top: 0.8em;">Sources: ONS births (England &amp; Wales, 2022–24) · National Neonatal Audit Programme / UKHSA (2025) · NHS England neonatal network specification. Beachhead: the ~50 NICUs (Level 3) that manage the most IVH/PHVD cases.</p>
+      <aside class="notes">
+        Land the wedge clearly: we are not selling to "all of healthcare." We start with the NHS — a single payer with organised neonatal networks, which makes the route to market unusually clean for a UK health-software startup.
+        Top line: ~53,000 preterm births a year in England and Wales, and preterm birth is the single biggest cause of neonatal death and illness in the UK. Severe brain bleeds hit up to 15% of the most premature babies, and more than half of those go on to develop PHVD — that's the population NUMIC is for.
+        The buyer: an annual licence per trust or neonatal network. 153 units, organised into 10 networks, means a network sale lands many units at once. Our beachhead is the ~50 Level-3 NICUs that see the most complex cases.
+        Be honest on stage: we're pre-revenue and bootstrapped. Frame that as a strength here — the asset is a working, explainable engine and a clean NHS route, not a cash-burn story.
+      </aside>
+    </section>
+
+    <!-- 9. STATUS / TRACTION -->
+    <section data-background-color="#122842">
+      <span class="eyebrow" style="background: rgba(59,130,246,0.25); color:#bfdbfe;">Where we are</span>
+      <h2 style="color:#fff;">Status today</h2>
+      <table class="clean" style="color:#e2e8f0;">
+        <tr><td style="color:#fff;">Scoring logic</td><td>NumicFlow prototype implemented &amp; versioned — needs clinical validation &amp; change control to market</td></tr>
+        <tr><td style="color:#fff;">Software</td><td>FastAPI service + browser demo running end-to-end</td></tr>
+        <tr><td style="color:#fff;">Inputs</td><td>Manual entry, spreadsheet import, numeric feeds — working today</td></tr>
+        <tr><td style="color:#fff;">Funding</td><td>None to date — bootstrapped, no equity or grants accepted</td></tr>
+        <tr><td style="color:#fff;">Regulatory</td><td>Open by design — intended use &amp; SaMD classification being scoped with advisors</td></tr>
+      </table>
+      <p class="tiny" style="color:#93c5fd; margin-top: 0.8em;">Honest early-stage posture: architecture &amp; rule structure exist in software; clinical evidence &amp; QMS alignment are deliberate, sequenced next steps.</p>
+      <aside class="notes">
+        Credibility through honesty. Judges reward founders who know exactly where they are.
+        What's done: the scoring engine works and is versioned; the software runs end-to-end; manual and import inputs work today.
+        What's not done, and that's by design: clinical validation, formal quality-management-system alignment, and the regulatory classification. Say plainly — "we have deliberately not put this near a patient yet, because the responsible order is engine first, evidence and governance next."
+        Funding: none to date, fully bootstrapped. Spin it: every pound of value here is product and IP, and we've reached a working system with no outside capital.
+        The one sentence to leave them with: "The hard technical core exists; what we need next is clinical and regulatory partnership — which is exactly what this competition can unlock."
+      </aside>
+    </section>
+
+    <!-- 10. ROADMAP -->
+    <section data-background-color="#ffffff">
+      <span class="eyebrow">Roadmap</span>
+      <h2>From prototype to responsible clinical use</h2>
+      <div class="timeline">
+        <div class="phase">
+          <div class="when">Now</div><div class="bar"></div>
+          <ul><li>Working scoring engine</li><li>Browser demo</li><li>Manual / import inputs</li></ul>
+        </div>
+        <div class="phase">
+          <div class="when">Next</div><div class="bar"></div>
+          <ul><li>Clinician-facing UI</li><li>Clinical &amp; regulatory advisors</li><li>Intended-use &amp; validation plan</li></ul>
+        </div>
+        <div class="phase">
+          <div class="when">Pilot</div><div class="bar"></div>
+          <ul><li>Design-partner sites</li><li>PACS / workflow links</li><li>QMS &amp; data governance</li></ul>
+        </div>
+        <div class="phase">
+          <div class="when">Scale</div><div class="bar"></div>
+          <ul><li>SaMD pathway</li><li>Validated image-derived measurements</li><li>Multi-trust rollout</li></ul>
+        </div>
+      </div>
+      <p class="small muted center" style="margin-top: 1em;">Any AI on images comes only <strong>after</strong> clinical validation.</p>
+      <aside class="notes">
+        Show a credible, sequenced path — not a wish list. Move left to right.
+        Now: working engine, demo, manual inputs. Next: a clinician-facing UI plus the clinical and regulatory advisors who help define intended use and a validation plan. Pilot: design-partner sites, PACS/workflow integration, and the data-governance and QMS work. Scale: the formal Software-as-a-Medical-Device pathway, validated image-derived measurements, and multi-trust rollout.
+        Emphasise the bottom line: any AI on the images themselves only comes after clinical validation. That ordering signals maturity and de-risks the regulatory story.
+        Tie it back to the ask: the jump from "Now" to "Next" is exactly where the right introductions accelerate us by months.
+      </aside>
+    </section>
+
+    <!-- 11. TEAM -->
+    <section data-background-color="#ffffff">
+      <span class="eyebrow">Team</span>
+      <h2>Founder-led, advisor-ready</h2>
+      <div class="grid2" style="margin-top: 0.6em;">
+        <div class="card">
+          <h3>Eswari Mathialagan</h3>
+          <p>Founder &amp; software developer. Master's student at UCL. Built the NumicFlow engine and clinical demo end-to-end.</p>
+        </div>
+        <div class="card" style="border-left-color: var(--muted); opacity: 0.85;">
+          <h3>Advisors we're building</h3>
+          <p>Actively seeking <strong>neonatology, imaging &amp; NHS governance</strong> voices and <strong>UK/EU health-software regulatory</strong> expertise to stress-test NumicFlow against real ward workflow.</p>
+        </div>
+      </div>
+      <p class="small muted center" style="margin-top: 0.9em;">Credible iteration depends on trusted clinical voices as much as engineering.</p>
+      <aside class="notes">
+        Own the founder story with confidence, not apology. You are a software developer and UCL master's student who built the entire NumicFlow engine and clinical demo end-to-end, solo. That's a strong signal of execution.
+        Be transparent that the team is early: the deliberate next hire/advisor gap is clinical and regulatory — neonatology, imaging, NHS governance, and UK/EU health-software regulatory expertise.
+        Frame it as a strength of self-awareness: "I know what I can build, and I know I need trusted clinical voices to make it safe and adopted. That's why I'm here."
+        If asked about commercial/team risk, this is where you say partnering through this programme is part of the plan — not an afterthought.
+      </aside>
+    </section>
+
+    <!-- 12. THE ASK -->
+    <section data-background-color="#122842">
+      <span class="eyebrow" style="background: rgba(59,130,246,0.25); color:#bfdbfe;">The ask</span>
+      <h2 style="color:#fff;">What would move NUMIC forward fastest</h2>
+      <ul class="ask-list" style="color:#e2e8f0;">
+        <li><strong style="color:#fff;">Clinical advisors &amp; design partners</strong> — neonatology, imaging, and NHS governance perspectives to validate the workflow.</li>
+        <li><strong style="color:#fff;">Regulatory introductions</strong> — guidance on SaMD positioning and a proportionate path toward responsible clinical use.</li>
+        <li><strong style="color:#fff;">Pilot pathway</strong> — a route into a trust or neonatal network for a first evaluation.</li>
+      </ul>
+      <p style="color:#fff; font-size: 0.78em; margin-top: 1.2em; border-left: 4px solid var(--blue); padding-left: 0.8em;">
+        NUMIC helps neonatal teams turn <strong style="color:#fff;">repeat head-ultrasound measurements</strong> and bedside context into a <strong style="color:#fff;">clear, explainable risk band</strong> — so next steps follow local protocol, with every driver of the score visible. It supports the team; it does not replace clinical judgment.
+      </p>
+      <p class="tiny center" style="color:#93c5fd; margin-top: 1.2em;">Eswari Mathialagan · NUMIC · let's talk</p>
+      <aside class="notes">
+        Be specific about the ask — vague asks lose. We want three things: clinical advisors and design partners (neonatology, imaging, NHS governance); regulatory introductions for SaMD positioning and a proportionate path; and a route into a trust or network for a first pilot.
+        Then deliver the closing line slowly and look up — it's the elevator pitch: NUMIC helps neonatal teams turn repeat head-ultrasound measurements and bedside context into a clear, explainable risk band, so next steps follow local protocol, with every driver of the score visible. It supports the team; it does not replace clinical judgment.
+        End on the human note you opened with — fragile babies, better-supported teams — then stop talking and invite questions. Don't trail off.
+        Time check: aim to land the whole pitch with ~20% of your slot left for Q&A.
+      </aside>
+    </section>
+
+  </div>
+</div>
+
+<div class="disclaimer">Decision support concept — not a regulated device or a performance commitment. Final claims to be aligned with clinical &amp; regulatory advisors.</div>
+
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/dist/reveal.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/reveal.js@5.1.0/plugin/notes/notes.js"></script>
+<script>
+  Reveal.initialize({
+    hash: true,
+    slideNumber: 'c/t',
+    transition: 'slide',
+    width: 1280,
+    height: 720,
+    margin: 0.06,
+    controls: true,
+    progress: true,
+    plugins: [RevealNotes]
+  });
+</script>
+</body>
+</html>

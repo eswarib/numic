@@ -25,6 +25,7 @@ Static HTML/CSS and **ES modules** under `web/clinical-demo/js/`. FastAPI mounts
 - **`js/api.js`** — `fetch` helpers; add auth and env-specific base URLs here for a production shell.
 - **`js/presets.js`** — Synthetic prior/current pairs; extend with anonymised teaching cases or a future examples API.
 - **`js/measurements.js`** — Form → `PatientMeasurementRecord`; natural place to attach PACS metadata later.
+- **`js/trend.js`** — SVG trend chart of VI / AHW / TOD across prior → current (live from form inputs).
 - **`js/app.js`** — Event wiring and hub/risk panel updates; keep thin so a SPA can reuse the modules.
 
 ## Product note

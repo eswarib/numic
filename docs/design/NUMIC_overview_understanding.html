@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Understanding NUMIC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column (~68ch) with a sticky section index on wide screens; the calculator and hosting options break out as the only "objects". */
+:root {
+  --bg: #f6f8f9;
+  --surface: #ffffff;
+  --ink: #14212b;
+  --muted: #566672;
+  --line: #d9e1e6;
+  --accent: #0b6e78;
+  --accent-soft: #e2f1f2;
+  --vi: #2563eb; --ahw: #0d9488; --tod: #c2410c;
+  --low: #2f7d4f; --low-bg: #e5f3ea;
+  --mod: #a86a00; --mod-bg: #fbf0d9;
+  --high: #b3261e; --high-bg: #fbe5e3;
+  --f-display: "Newsreader", Georgia, "Times New Roman", serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f171c; --surface: #16222a; --ink: #e3eaee; --muted: #9aabb6; --line: #2a3a44;
+    --accent: #5cc3cc; --accent-soft: #173238;
+    --vi: #7aa2ff; --ahw: #4fd1c0; --tod: #f08a5d;
+    --low: #6fcf91; --low-bg: #16301f; --mod: #f0b64a; --mod-bg: #33280f; --high: #f2837a; --high-bg: #3a1a18;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f171c; --surface: #16222a; --ink: #e3eaee; --muted: #9aabb6; --line: #2a3a44;
+  --accent: #5cc3cc; --accent-soft: #173238;
+  --vi: #7aa2ff; --ahw: #4fd1c0; --tod: #f08a5d;
+  --low: #6fcf91; --low-bg: #16301f; --mod: #f0b64a; --mod-bg: #33280f; --high: #f2837a; --high-bg: #3a1a18;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 400 16px/1.6 var(--f-body); margin: 0; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 80px;
+  display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 56px; }
+nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; font-size: 13.5px; }
+nav.toc p { font: 500 11px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
+nav.toc ol { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+nav.toc a { color: var(--muted); text-decoration: none; }
+nav.toc a:hover, nav.toc a:focus-visible { color: var(--accent); }
+main { min-width: 0; }
+header.hero { padding-bottom: 28px; border-bottom: 1px solid var(--line); margin-bottom: 8px; }
+.eyebrow { font: 500 12px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 0 0 14px; }
+h1 { font: 600 clamp(34px, 5vw, 48px)/1.08 var(--f-display); margin: 0 0 16px; text-wrap: balance; letter-spacing: -.01em; }
+.lede { font-size: 19px; line-height: 1.55; max-width: 62ch; margin: 0; }
+.meta { margin-top: 18px; font-size: 13px; color: var(--muted); }
+section { padding-top: 44px; }
+h2 { font: 600 28px/1.2 var(--f-display); margin: 0 0 14px; text-wrap: balance; }
+h3 { font: 600 16px/1.3 var(--f-body); margin: 26px 0 8px; }
+p, li { max-width: 68ch; }
+p { margin: 0 0 14px; }
+ul { padding-left: 20px; margin: 0 0 14px; }
+li { margin-bottom: 6px; }
+a { color: var(--accent); }
+code, .mono { font-family: var(--f-mono); font-size: .88em; }
+code { background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; }
+.muted { color: var(--muted); }
+abbr { text-decoration: none; border-bottom: 1px dotted var(--muted); cursor: help; }
+
+.metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 18px 0 8px; }
+.metric { border-top: 3px solid var(--c); padding-top: 10px; }
+.metric b { font: 500 13px/1 var(--f-mono); color: var(--c); display: block; margin-bottom: 4px; letter-spacing: .04em; }
+.metric span { font-size: 14px; color: var(--muted); }
+
+.flow { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin: 20px 0; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; background: var(--surface); }
+.flow > div { padding: 14px 16px; border-right: 1px solid var(--line); }
+.flow > div:last-child { border-right: 0; background: var(--accent-soft); }
+.flow .k { font: 500 11px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.flow .v { font: 600 26px/1.2 var(--f-display); margin: 6px 0 4px; font-variant-numeric: tabular-nums; }
+.flow .d { font-size: 13.5px; color: var(--muted); line-height: 1.45; }
+
+.tablewrap { overflow-x: auto; margin: 12px 0 18px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 520px; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font: 500 11.5px/1.3 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+td.num { font-family: var(--f-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+.tiers { display: flex; flex-wrap: wrap; gap: 8px; margin: 6px 0 16px; }
+.pill { font: 500 13px/1 var(--f-mono); padding: 7px 11px; border-radius: 999px; }
+.pill.low { background: var(--low-bg); color: var(--low); }
+.pill.moderate { background: var(--mod-bg); color: var(--mod); }
+.pill.high { background: var(--high-bg); color: var(--high); }
+
+/* Calculator */
+.calc { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 20px; margin: 22px 0 10px; }
+.calc-head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; }
+.calc-head h3 { margin: 0; }
+.presets { display: flex; gap: 6px; flex-wrap: wrap; }
+button { font: 500 13px/1 var(--f-body); color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; cursor: pointer; }
+button:hover { border-color: var(--accent); color: var(--accent); }
+button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--surface); }
+button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.calc-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 24px; }
+.inputs table { min-width: 0; font-size: 13.5px; }
+.inputs th, .inputs td { padding: 6px 6px; }
+.inputs input, .inputs select { width: 100%; font: 400 14px/1.2 var(--f-mono); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 5px; padding: 6px 7px; }
+.inputs .row2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 12px; }
+.inputs label { font-size: 12.5px; color: var(--muted); display: block; margin-bottom: 4px; }
+.result { border-left: 1px solid var(--line); padding-left: 24px; min-width: 0; }
+.total { display: flex; align-items: baseline; gap: 10px; }
+.total .n { font: 600 56px/1 var(--f-display); font-variant-numeric: tabular-nums; }
+.total .of { color: var(--muted); font-family: var(--f-mono); font-size: 14px; }
+.bars { display: grid; gap: 10px; margin: 16px 0; }
+.bar { display: grid; grid-template-columns: 92px minmax(0, 1fr) 40px; align-items: center; gap: 10px; font-size: 13px; }
+.bar .track { height: 8px; background: var(--bg); border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.bar .fill { height: 100%; background: var(--accent); border-radius: 999px; transition: width .25s; }
+.bar .pts { font-family: var(--f-mono); text-align: right; font-variant-numeric: tabular-nums; }
+.why { font: 400 12.5px/1.55 var(--f-mono); color: var(--muted); margin: 0; white-space: pre-wrap; }
+.note { font-size: 13px; color: var(--muted); margin-top: 10px; }
+.decision { background: var(--accent-soft); border-left: 3px solid var(--accent); border-radius: 6px; padding: 12px 14px; margin: 0 0 16px; font-size: 15px; max-width: 72ch; }
+.decision b { display: block; margin-bottom: 4px; }
+
+/* Architecture */
+.arch { font: 400 13px/1.5 var(--f-mono); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px; overflow-x: auto; white-space: pre; color: var(--ink); margin: 14px 0; }
+
+/* Options */
+.options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 18px 0; }
+.opt { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 16px 6px; min-width: 0; display: flex; flex-direction: column; }
+.opt.rec { border-color: var(--accent); box-shadow: inset 0 3px 0 var(--accent); }
+.opt .tag { font: 500 11px/1 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.opt.rec .tag { color: var(--accent); }
+.opt h3 { margin: 8px 0 6px; font-size: 16px; }
+.opt p, .opt li { font-size: 14px; }
+.opt ul { padding-left: 18px; }
+.opt .pm { font: 500 11px/1 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); margin: 8px 0 6px; }
+
+.findings { display: grid; gap: 12px; margin-top: 16px; }
+.finding { display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 14px; padding: 12px 0; border-top: 1px solid var(--line); }
+.finding .sev { font: 500 11px/1.3 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; padding-top: 3px; }
+.sev.hi { color: var(--high); } .sev.md { color: var(--mod); } .sev.lo { color: var(--muted); }
+.finding p { margin: 0; font-size: 15px; }
+.finding b { display: block; margin-bottom: 3px; }
+
+.qs { counter-reset: q; list-style: none; padding: 0; }
+.qs li { counter-increment: q; position: relative; padding-left: 34px; margin-bottom: 12px; }
+.qs li::before { content: counter(q); position: absolute; left: 0; top: 1px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font: 500 12px/22px var(--f-mono); text-align: center; }
+
+footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+
+@media (max-width: 880px) {
+  .wrap { grid-template-columns: minmax(0, 1fr); gap: 0; padding-block: 28px 60px; padding-inline: 16px; }
+  nav.toc { display: none; }
+  .options { grid-template-columns: minmax(0, 1fr); }
+  .calc-grid { grid-template-columns: minmax(0, 1fr); }
+  .result { border-left: 0; padding-left: 0; border-top: 1px solid var(--line); padding-top: 18px; }
+  .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .flow > div:nth-child(2) { border-right: 0; }
+  .flow > div:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+}
+@media (max-width: 520px) {
+  .metrics { grid-template-columns: minmax(0, 1fr); }
+  .finding { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+}
+@media (prefers-reduced-motion: reduce) { .bar .fill { transition: none; } }
+
+.ver { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; font: 500 12px/1 var(--f-mono); }
+.ver .v { background: var(--accent); color: var(--surface); padding: 5px 9px; border-radius: 4px; }
+.ver .d { color: var(--muted); }
+.ver a { color: var(--accent); }
+.hist { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); margin-top: 12px; }
+.hist table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 560px; }
+.hist th, .hist td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.hist tr:last-child td { border-bottom: 0; }
+.hist th { font: 500 11px/1.3 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); background: var(--bg); }
+.hist td.vn { font: 500 13px/1.4 var(--f-mono); white-space: nowrap; width: 64px; }
+.hist td.dt { font: 400 13px/1.4 var(--f-mono); white-space: nowrap; color: var(--muted); width: 104px; }
+.hist tr.cur td.vn { color: var(--accent); }
+.hist ul { margin: 4px 0 0; padding-left: 18px; }
+.hist li { margin-bottom: 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="toc" aria-label="Sections">
+    <p>Contents</p>
+    <ol>
+      <li><a href="#what">What NUMIC is</a></li>
+      <li><a href="#problem">The clinical gap</a></li>
+      <li><a href="#numicflow">NumicFlow scoring</a></li>
+      <li><a href="#built">What's built</a></li>
+      <li><a href="#position">Status &amp; positioning</a></li>
+      <li><a href="#demo">The clinical demo</a></li>
+      <li><a href="#hosting">Hosting on numic.uk</a></li>
+      <li><a href="#observations">Things I noticed</a></li>
+      <li><a href="#discuss">To discuss</a></li>
+      <li><a href="#history">Change history</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <header class="hero" id="what">
+      <p class="eyebrow">Neonatal cranial ultrasound · PHVD decision support</p>
+      <h1>Understanding NUMIC</h1>
+      <p class="lede">NUMIC turns the cranial ultrasound numbers a NICU team already records (ventricular size, how much it has changed since the last scan, and a short clinical-concern rating) into one explainable risk band: low, moderate or high. It supports the team's local pathway. It does not choose treatment.</p>
+      <p class="meta">Summary drawn from the repo's overview, stakeholder, evidence-premise, accelerator and demo docs, plus the code in <code>src/numic</code> and <code>web/clinical-demo</code>. Written 4 Oct 2026.</p>
+      <div class="ver"><span class="v">Version 3</span><span class="d">Updated 6 Oct 2026</span><a href="#history">Change history</a></div>
+    </header>
+
+    <section id="problem">
+      <h2>The clinical gap</h2>
+      <p>In preterm infants, bleeding into the brain's ventricles (<abbr title="Intraventricular haemorrhage">IVH</abbr>) can lead to <strong>post‑haemorrhagic ventricular dilation (PHVD)</strong>, which is linked to brain injury and poorer neurodevelopment. Management depends on three things: how dilated the ventricles are, how quickly they are getting bigger on serial cranial ultrasound (<abbr title="cranial ultrasound">cUS</abbr>), and how the baby is doing clinically.</p>
+      <p>Teams already measure three standard metrics on each scan:</p>
+      <div class="metrics">
+        <div class="metric" style="--c: var(--vi)"><b>VI</b><span>Ventricular index, compared against gestational-age percentile curves (97th‑centile line)</span></div>
+        <div class="metric" style="--c: var(--ahw)"><b>AHW</b><span>Anterior horn width, in mm</span></div>
+        <div class="metric" style="--c: var(--tod)"><b>TOD</b><span>Thalamo‑occipital distance, in mm</span></div>
+      </div>
+      <p>The gap the docs identify: progression is often described loosely ("a bit bigger") and checked by hand against prior scans and cut‑offs. Nothing widely used combines absolute size, rate of change and clinical signs into one consistent, auditable summary for handover and governance. The anchor reference throughout is El‑Dib et al., <em>J Pediatr</em> 2020 (management of PHVD in preterm infants).</p>
+    </section>
+
+    <section id="numicflow">
+      <h2>NumicFlow scoring</h2>
+      <p>The score has three transparent layers that add up to a total out of 14. Every result records which <em>versioned rule bundle</em> produced it, so a result can be traced to an approved set of thresholds after the rules change.</p>
+      <div class="flow" role="list">
+        <div role="listitem"><div class="k">Static</div><div class="v">0–6</div><div class="d">Current size of VI, AHW and TOD against thresholds (0–2 points each)</div></div>
+        <div role="listitem"><div class="k">Progression</div><div class="v">0–6</div><div class="d">mm worsening since the prior scan, per metric (0–2 each)</div></div>
+        <div role="listitem"><div class="k">Clinical</div><div class="v">0–2</div><div class="d">Structured concern: none, mild or clear</div></div>
+        <div role="listitem"><div class="k">NumicFlow</div><div class="v">0–14</div><div class="d">Sum, mapped to a risk band</div></div>
+      </div>
+      <div class="tiers"><span class="pill low">Low · 0–3</span><span class="pill moderate">Moderate · 4–7</span><span class="pill high">High · 8–14</span></div>
+
+      <h3>Thresholds in <code>numic_flow_v1</code></h3>
+      <p class="muted">Copied from <code>src/numic/scoring/rules/bundles.py</code>. The alternate bundle <code>numic_flow_v2_pre95</code> differs only in lowering the VI percentile gate to 95.</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Metric</th><th>0 points</th><th>1 point</th><th>2 points</th></tr></thead>
+          <tbody>
+            <tr><td><b>VI</b> static</td><td class="num">percentile &lt; 97</td><td class="num">≥ 97th centile</td><td class="num">≥ 97th and VI ≥ ref + 4 mm</td></tr>
+            <tr><td><b>AHW</b> static</td><td class="num">&lt; 6 mm</td><td class="num">6–10 mm</td><td class="num">&gt; 10 mm</td></tr>
+            <tr><td><b>TOD</b> static</td><td class="num">&lt; 25 mm</td><td class="num">25–&lt;30 mm</td><td class="num">≥ 30 mm</td></tr>
+            <tr><td><b>VI / AHW</b> change</td><td class="num">&lt; 1 mm worse</td><td class="num">1–&lt;2 mm</td><td class="num">≥ 2 mm</td></tr>
+            <tr><td><b>TOD</b> change</td><td class="num">&lt; 2 mm worse</td><td class="num">2–&lt;4 mm</td><td class="num">≥ 4 mm</td></tr>
+            <tr><td><b>Clinical</b></td><td class="num">none</td><td class="num">mild</td><td class="num">clear</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="calc" aria-labelledby="calcTitle">
+        <div class="calc-head">
+          <h3 id="calcTitle">Try it: NumicFlow v1 in the browser</h3>
+          <div class="presets" role="group" aria-label="Example scenarios">
+            <button type="button" data-preset="low" id="p-low">Low example</button>
+            <button type="button" data-preset="moderate" id="p-moderate">Moderate example</button>
+            <button type="button" data-preset="high" id="p-high">High example</button>
+          </div>
+        </div>
+        <div class="calc-grid">
+          <div class="inputs">
+            <table>
+              <thead><tr><th></th><th>Prior</th><th>Current</th></tr></thead>
+              <tbody>
+                <tr><th scope="row" style="color:var(--vi)">VI mm</th><td><input id="vi-p" type="number" step="0.1" aria-label="Prior VI mm"></td><td><input id="vi-c" type="number" step="0.1" aria-label="Current VI mm"></td></tr>
+                <tr><th scope="row" style="color:var(--ahw)">AHW mm</th><td><input id="ahw-p" type="number" step="0.1" aria-label="Prior AHW mm"></td><td><input id="ahw-c" type="number" step="0.1" aria-label="Current AHW mm"></td></tr>
+                <tr><th scope="row" style="color:var(--tod)">TOD mm</th><td><input id="tod-p" type="number" step="0.1" aria-label="Prior TOD mm"></td><td><input id="tod-c" type="number" step="0.1" aria-label="Current TOD mm"></td></tr>
+                <tr><th scope="row">VI centile</th><td><input id="pct-p" type="number" step="1" aria-label="Prior VI percentile"></td><td><input id="pct-c" type="number" step="1" aria-label="Current VI percentile"></td></tr>
+              </tbody>
+            </table>
+            <div class="row2">
+              <div><label for="ref">VI reference (97th, mm)</label><input id="ref" type="number" step="0.1"></div>
+              <div><label for="concern">Clinical concern</label>
+                <select id="concern"><option value="0">None (0)</option><option value="1">Mild (1)</option><option value="2">Clear (2)</option></select></div>
+            </div>
+          </div>
+          <div class="result" aria-live="polite">
+            <div class="total"><span class="n" id="out-total">–</span><span class="of">/ 14</span><span class="pill" id="out-tier">–</span></div>
+            <div class="bars">
+              <div class="bar"><span>Static</span><div class="track"><div class="fill" id="b-static"></div></div><span class="pts" id="o-static">–</span></div>
+              <div class="bar"><span>Progression</span><div class="track"><div class="fill" id="b-prog"></div></div><span class="pts" id="o-prog">–</span></div>
+              <div class="bar"><span>Clinical</span><div class="track"><div class="fill" id="b-clin"></div></div><span class="pts" id="o-clin">–</span></div>
+            </div>
+            <p class="why" id="out-why"></p>
+          </div>
+        </div>
+        <p class="note">Synthetic numbers from the demo's own presets (<code>presets.js</code>). This calculator reimplements the Python rules in about 40 lines of JavaScript. That is the basis of hosting option A below.</p>
+      </div>
+    </section>
+
+    <section id="built">
+      <h2>What's built today</h2>
+      <p>The repo has a working prototype written API-first in Python with FastAPI.</p>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Area</th><th>Where</th><th>What it does</th></tr></thead>
+          <tbody>
+            <tr><td>Measurement capture</td><td class="num">measurement/</td><td>Manual entry, spreadsheet/tabular import, overlay/PACS-style numeric feeds, DICOM I/O. Image landmark extraction is stubbed for future segmentation models.</td></tr>
+            <tr><td>Scoring</td><td class="num">scoring/</td><td>Static, progression and clinical services, an aggregate, and versioned rule bundles (<code>numic_flow_v1</code>, <code>numic_flow_v2_pre95</code>).</td></tr>
+            <tr><td>API</td><td class="num">api/v1/</td><td><code>/score/versions</code>, measurement endpoints, and the one-call demo route <code>/demo/numic-flow-from-record</code>.</td></tr>
+            <tr><td>Persistence</td><td class="num">db/</td><td>SQLAlchemy models and session for Postgres (asyncpg). Scaffolded; the demo doesn't use it.</td></tr>
+            <tr><td>CLI</td><td class="num">cli/measure.py</td><td><code>numic-manual-measure</code> for manual measurement entry.</td></tr>
+            <tr><td>Clinical demo</td><td class="num">web/clinical-demo/</td><td>Static HTML/CSS plus ES modules, served by FastAPI at <code>/clinical-demo/</code>.</td></tr>
+            <tr><td>Tests</td><td class="num">tests/</td><td>Demo endpoint, manual entry, measurement, scoring, tabular import.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section id="position">
+      <h2>Status &amp; positioning</h2>
+      <h3>Product &amp; business</h3>
+      <ul>
+        <li><strong>Model:</strong> B2B SaaS, with an annual licence per NHS trust or neonatal network, optional pilot pricing in year one, and separate setup/integration fees.</li>
+        <li><strong>Stage:</strong> pre‑revenue, bootstrapped, virtual company. The team is Eswari Mathialagan (software; Master's student at UCL), with clinical and other roles still TBC.</li>
+        <li><strong>Funding path:</strong> an accelerator brief for Discovery Park / Discovery Spark (Kent), aimed at regulatory introductions and clinical advisers, plus an NIHR full-application template in the repo.</li>
+        <li><strong>Assets:</strong> pitch deck (HTML), video pitch, accelerator brief, evidence-premise outline, and the website domain <strong>numic.uk</strong> on Carrd.</li>
+      </ul>
+      <h3>Regulatory &amp; clinical posture (deliberately open)</h3>
+      <ul>
+        <li>Positioned as <strong>decision support</strong>, not diagnosis. Whether it counts as Software as a Medical Device, in which class, and whether it goes through UKCA or MDR is still to be settled with quality and clinical leads.</li>
+        <li>Planned governance topics: ISO 14971 risk management, IEC 62304 lifecycle, UK GDPR / DSPT, DPIA, human-factors testing, and clinical validation before any use near patients.</li>
+        <li>Evidence premise: serial cUS ventricular metrics form the backbone of escalation decisions. The docs avoid claiming causal outcome benefit until specific citations are in place.</li>
+      </ul>
+      <h3>Roadmap</h3>
+      <p>Next steps: a proper clinician UI shaped with neonatologists and sonographers, persistence, deeper PACS/workflow integration, and later automatic VI/AHW/TOD from images, but only after clinical validation. Open user-research questions (the Harriet interview prep) cover NICU scanning cadence, how scans are compared across days, and which tools are already in use.</p>
+    </section>
+
+    <section id="demo">
+      <h2>The clinical demo, as it works now</h2>
+      <p>One screen. It takes patient context (demo ID, gestational age, VI reference), prior and current scans (date/time, VI, AHW, TOD, VI percentile), a 0/1/2 clinical modifier, and a rule-bundle selector with low, moderate and high presets. It shows the NumicFlow score, the highlighted band with suggested-action text, a live SVG trend chart (prior to current, with the VI reference line), and the raw JSON breakdown.</p>
+      <div class="arch" role="img" aria-label="Architecture: browser loads static files from FastAPI and posts to its demo API">Browser ── GET /clinical-demo/*  ──▶  FastAPI (uvicorn)  ── StaticFiles(web/clinical-demo)
+   │                                      │
+   ├─ GET  /api/v1/score/versions ───────▶│  list_score_versions()
+   └─ POST /api/v1/demo/numic-flow-from-record
+                                          ▼
+                       static + progression + clinical → total → risk_tier
+                       (same-origin; no auth, no CORS, nothing persisted)</div>
+      <p><strong>What this means for hosting:</strong> the UI files are static, but scoring happens in Python on the server. The demo can't simply be dropped into a static site builder. Either a Python server runs somewhere, or the scoring moves into the browser.</p>
+    </section>
+
+    <section id="hosting">
+      <h2>Hosting it on numic.uk</h2>
+      <div class="decision"><b>Decision, 6 Oct 2026: option B on Railway.</b> The demo will run as one FastAPI service with a PostgreSQL database on Railway at demo.numic.uk, linked from numic.uk. It uses the Levene rule set only, 10 synthetic babies and a private sandbox per visitor, with patient IDs generated automatically and no unit dashboard. The options below are kept for the record. Details: <a href="NUMIC_architecture.html#demo">architecture, Demo deployment</a>.</div>
+      <p>The website is on <strong>Carrd Pro Standard</strong> with a Namecheap domain. Carrd builds static, single-page sites. It can't run Python, and it can't serve a multi-file JS app as-is. Pro plans do allow embeds (including iframes) and custom domains. In every option, the demo lives on a subdomain such as <code>demo.numic.uk</code> (a CNAME at Namecheap), and the Carrd site either links to it or embeds it in an iframe.</p>
+      <div class="options">
+        <div class="opt rec">
+          <span class="tag">Option A · my recommendation</span>
+          <h3>Fully static demo</h3>
+          <p>Port the ~60 lines of v1 scoring to JS (as this page does) and host <code>web/clinical-demo</code> on Cloudflare Pages, GitHub Pages or Netlify.</p>
+          <p class="pm">For</p>
+          <ul><li>Free, no server to keep alive, instant load</li><li>No data leaves the visitor's browser, which helps the privacy story</li><li>Works offline and for investors on a slow link</li></ul>
+          <p class="pm">Against</p>
+          <ul><li>Rules exist twice (Python and JS). Fix: export bundles to one <code>rules.json</code> plus a parity test</li></ul>
+        </div>
+        <div class="opt">
+          <span class="tag">Option B</span>
+          <h3>Deploy the FastAPI app</h3>
+          <p>Run the existing app (UI and API together) on Render, Fly.io, Railway or Cloud Run, mapped to <code>demo.numic.uk</code>.</p>
+          <p class="pm">For</p>
+          <ul><li>One source of truth, and no code change to scoring</li><li>Shows a "real" backend and <code>/docs</code></li></ul>
+          <p class="pm">Against</p>
+          <ul><li>Cost or free-tier cold starts (slow first load)</li><li>Visitor input reaches a server and its logs</li><li>Needs a requirements trim (asyncpg, pydicom and others aren't needed)</li></ul>
+        </div>
+        <div class="opt">
+          <span class="tag">Option C</span>
+          <h3>Hybrid</h3>
+          <p>Static UI on Pages, with the API on a serverless function and CORS configured.</p>
+          <p class="pm">For</p>
+          <ul><li>Fast UI, with the Python rules kept authoritative</li></ul>
+          <p class="pm">Against</p>
+          <ul><li>Most moving parts for a demo</li><li>Still sends inputs to a server</li></ul>
+        </div>
+      </div>
+      <p>For a public marketing demo, A fits best: the scoring is simple, deterministic and already well specified. B suits a private demo for clinical partners who want to see the real system.</p>
+    </section>
+
+    <section id="observations">
+      <h2>Things I noticed while reading</h2>
+      <p class="muted">Read-only observations. Nothing has been changed.</p>
+      <div class="findings">
+        <div class="finding"><span class="sev hi">Before public</span><p><b>The demo shows action text, while the brief says no treatment text is emitted.</b> The API returns only a band, but the UI shows "Urgent escalation" and "Tighter surveillance". On a public page that reads like clinical advice. Consider neutral labels or "per your local pathway" wording, and keep the "not for patient care" banner prominent.</p></div>
+        <div class="finding"><span class="sev hi">Before public</span><p><b>Free-text "clinical notes" and "patient ID" invite real data.</b> On an open website, someone may type identifiable details. Remove those fields, or lock them to synthetic values, for the hosted version. Under option B this matters more, because input reaches server logs.</p></div>
+        <div class="finding"><span class="sev md">Clinical logic</span><p><b>Progression ignores the time between scans.</b> Both scan dates are collected, but scoring uses only the mm difference. A 2 mm rise over 2 days scores the same as over 3 weeks, yet the docs frame the score as "how fast". This is worth raising with clinicians (mm/day, or interval-aware bands).</p></div>
+        <div class="finding"><span class="sev md">Clinical logic</span><p><b>The VI percentile and 97th-centile reference are typed in by hand.</b> Gestational age is captured but not used. A nomogram lookup from GA and VI would remove a manual step and a source of error, which matches the brief's "less repetitive manual work" claim.</p></div>
+        <div class="finding"><span class="sev lo">Housekeeping</span><p><b>The demo has uncommitted work.</b> <code>trend.js</code> is untracked, and <code>index.html</code>, <code>app.js</code> and <code>styles.css</code> are modified. Hosting should start from a committed snapshot so the live site is reproducible.</p></div>
+        <div class="finding"><span class="sev lo">Housekeeping</span><p><b>The docs overlap.</b> <code>NUMIC_overview.md</code>, <code>_for_stakeholders.md</code> and the <code>.docx</code> are near-duplicates. <code>questions.md</code> stops mid-sentence ("only 8 % of"). The team table is mostly TBC.</p></div>
+      </div>
+    </section>
+
+    <section id="discuss">
+      <h2>Questions for our demo discussion</h2>
+      <ol class="qs">
+        <li><strong>Audience:</strong> is the website demo for investors and accelerators (public, polished, simplified) or for clinicians (closer to the real workflow)? The answer decides between A and B.</li>
+        <li><strong>Placement:</strong> should it be embedded inside the Carrd page (iframe section) or opened as its own page at <code>demo.numic.uk</code>? Full-page works much better on phones.</li>
+        <li><strong>Raw JSON:</strong> keep the JSON breakdown, or replace it with the readable per-layer bars shown above?</li>
+        <li><strong>Copy:</strong> what should the band labels and suggested-action wording say on a public page, given the "no treatment text" stance?</li>
+        <li><strong>Extras:</strong> should it include a short guided walkthrough (three presets with a sentence each) for people who don't know what VI, AHW and TOD are?</li>
+      </ol>
+    </section>
+
+    <section id="history">
+      <h2>Change history</h2>
+      <p class="muted">Version numbers match the published versions of this page. Each publish keeps the same link and adds a new version; the newest is always shown.</p>
+      <div class="hist"><table>
+        <thead><tr><th>Version</th><th>Date</th><th>Changes</th></tr></thead>
+        <tbody>
+<tr class="cur"><td class="vn">v3</td><td class="dt">6 Oct 2026</td><td><b>Hosting decision recorded</b><ul><li>Option B on Railway with PostgreSQL, Levene only, 10 synthetic babies, visitor sandboxes</li></ul></td></tr>
+<tr><td class="vn">v2</td><td class="dt">5 Oct 2026</td><td><b>Version and change history added</b><ul><li>Version line under the title</li><li>This change-history section</li></ul></td></tr>
+<tr><td class="vn">v1</td><td class="dt">4 Oct 2026</td><td><b>First version</b><ul><li>Reading of the NUMIC docs and code: clinical gap, NumicFlow layers, numic_flow_v1 thresholds</li><li>In-browser NumicFlow v1 calculator using the demo presets</li><li>What is built, status and positioning, how the demo works</li><li>Hosting options for numic.uk (A static, B FastAPI, C hybrid)</li><li>Observations and questions for the demo discussion</li></ul></td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <footer>Prepared as a reading of the NUMIC repository for discussion. Not regulatory or clinical advice. All numbers in the calculator are synthetic.</footer>
+  </main>
+</div>
+
+<script>
+(() => {
+  const R = { pctGate: 97, viHighAbove: 4, ahwN: 6, ahwM: 10, todN: 25, todH: 30, viAhw0: 1, viAhw1: 2, tod0: 2, tod1: 4, lowMax: 3, modMax: 7 };
+  const PRESETS = {
+    low:      { ref: 12, p: { vi: 8,  ahw: 4, tod: 22, pct: 85 }, c: { vi: 8,  ahw: 4,  tod: 22, pct: 85 } },
+    moderate: { ref: 12, p: { vi: 8,  ahw: 5, tod: 22, pct: 95 }, c: { vi: 9,  ahw: 6,  tod: 24, pct: 98 } },
+    high:     { ref: 12, p: { vi: 14, ahw: 9, tod: 28, pct: 98 }, c: { vi: 18, ahw: 11, tod: 35, pct: 99 } },
+  };
+  const $ = (id) => document.getElementById(id);
+  const num = (id) => parseFloat($(id).value);
+
+  function score(p, c, ref, clin) {
+    const vi = c.pct < R.pctGate ? 0 : (ref != null && c.vi >= ref + R.viHighAbove ? 2 : 1);
+    const ahw = c.ahw < R.ahwN ? 0 : c.ahw <= R.ahwM ? 1 : 2;
+    const tod = c.tod < R.todN ? 0 : c.tod < R.todH ? 1 : 2;
+    const w = (d) => Math.max(0, d);
+    const dv = w(c.vi - p.vi), da = w(c.ahw - p.ahw), dt = w(c.tod - p.tod);
+    const band2 = (d, a, b) => d < a ? 0 : d < b ? 1 : 2;
+    const pv = band2(dv, R.viAhw0, R.viAhw1), pa = band2(da, R.viAhw0, R.viAhw1), pt = band2(dt, R.tod0, R.tod1);
+    const st = vi + ahw + tod, pr = pv + pa + pt, total = st + pr + clin;
+    const tier = total <= R.lowMax ? "low" : total <= R.modMax ? "moderate" : "high";
+    return { vi, ahw, tod, st, pv, pa, pt, pr, dv, da, dt, clin, total, tier };
+  }
+
+  function update() {
+    const p = { vi: num("vi-p"), ahw: num("ahw-p"), tod: num("tod-p"), pct: num("pct-p") };
+    const c = { vi: num("vi-c"), ahw: num("ahw-c"), tod: num("tod-c"), pct: num("pct-c") };
+    const refV = num("ref");
+    if ([...Object.values(p), ...Object.values(c)].some(Number.isNaN)) {
+      $("out-total").textContent = "–"; $("out-tier").textContent = "Enter all values"; $("out-tier").className = "pill"; return;
+    }
+    const s = score(p, c, Number.isNaN(refV) ? null : refV, parseInt($("concern").value, 10));
+    $("out-total").textContent = s.total;
+    $("out-tier").textContent = s.tier[0].toUpperCase() + s.tier.slice(1);
+    $("out-tier").className = "pill " + s.tier;
+    $("o-static").textContent = s.st + "/6"; $("b-static").style.width = (s.st / 6 * 100) + "%";
+    $("o-prog").textContent = s.pr + "/6";   $("b-prog").style.width = (s.pr / 6 * 100) + "%";
+    $("o-clin").textContent = s.clin + "/2"; $("b-clin").style.width = (s.clin / 2 * 100) + "%";
+    const f = (n) => (Math.round(n * 10) / 10).toString();
+    $("out-why").textContent =
+      `static  VI ${s.vi} · AHW ${s.ahw} · TOD ${s.tod}\n` +
+      `change  VI +${f(s.dv)}mm→${s.pv} · AHW +${f(s.da)}mm→${s.pa} · TOD +${f(s.dt)}mm→${s.pt}\n` +
+      `bundle  numic_flow_v1`;
+  }
+
+  function apply(key) {
+    const k = PRESETS[key];
+    $("ref").value = k.ref;
+    for (const m of ["vi", "ahw", "tod", "pct"]) { $(m + "-p").value = k.p[m]; $(m + "-c").value = k.c[m]; }
+    $("concern").value = key === "high" ? "1" : "0";
+    document.querySelectorAll("[data-preset]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.preset === key)));
+    update();
+  }
+
+  document.querySelectorAll("[data-preset]").forEach((b) => b.addEventListener("click", () => apply(b.dataset.preset)));
+  document.querySelectorAll(".inputs input, .inputs select").forEach((el) => el.addEventListener("input", () => {
+    document.querySelectorAll("[data-preset]").forEach((b) => b.setAttribute("aria-pressed", "false"));
+    update();
+  }));
+  apply("moderate");
+})();
+</script>
+</body>
+</html>

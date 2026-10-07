@@ -1,0 +1,634 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>NUMIC Age-Based Rule Sets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column with a sticky section index; the rule-set comparison and file map are the only boxed objects. */
+:root {
+  --bg: #f6f8f9; --surface: #ffffff; --ink: #14212b; --muted: #566672; --line: #d9e1e6;
+  --accent: #0b6e78; --accent-soft: #e2f1f2;
+  --lev: #5b4bb7; --lev-soft: #ece9f8;
+  --bro: #0b6e78; --bro-soft: #e2f1f2;
+  --new: #2f7d4f; --new-bg: #e5f3ea;
+  --chg: #a86a00; --chg-bg: #fbf0d9;
+  --same: #566672; --same-bg: #eef2f4;
+  --crit: #b3261e; --crit-bg: #fbe5e3;
+  --f-display: "Newsreader", Georgia, "Times New Roman", serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f171c; --surface: #16222a; --ink: #e3eaee; --muted: #9aabb6; --line: #2a3a44;
+    --accent: #5cc3cc; --accent-soft: #173238;
+    --lev: #a99cf0; --lev-soft: #25213d; --bro: #5cc3cc; --bro-soft: #173238;
+    --new: #6fcf91; --new-bg: #16301f; --chg: #f0b64a; --chg-bg: #33280f; --same: #9aabb6; --same-bg: #1d2a32;
+    --crit: #f2837a; --crit-bg: #3a1a18;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f171c; --surface: #16222a; --ink: #e3eaee; --muted: #9aabb6; --line: #2a3a44;
+  --accent: #5cc3cc; --accent-soft: #173238;
+  --lev: #a99cf0; --lev-soft: #25213d; --bro: #5cc3cc; --bro-soft: #173238;
+  --new: #6fcf91; --new-bg: #16301f; --chg: #f0b64a; --chg-bg: #33280f; --same: #9aabb6; --same-bg: #1d2a32;
+  --crit: #f2837a; --crit-bg: #3a1a18;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 400 16px/1.6 var(--f-body); margin: 0; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 80px;
+  display: grid; grid-template-columns: 190px minmax(0, 1fr); gap: 56px; }
+nav.toc { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 24px); align-self: start; font-size: 13.5px; }
+nav.toc p { font: 500 11px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; }
+nav.toc ol { list-style: none; padding: 0; margin: 0; display: grid; gap: 6px; }
+nav.toc a { color: var(--muted); text-decoration: none; }
+nav.toc a:hover, nav.toc a:focus-visible { color: var(--accent); }
+main { min-width: 0; }
+header.hero { padding-bottom: 26px; border-bottom: 1px solid var(--line); }
+.eyebrow { font: 500 12px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); margin: 0 0 14px; }
+h1 { font: 600 clamp(32px, 5vw, 46px)/1.08 var(--f-display); margin: 0 0 16px; text-wrap: balance; letter-spacing: -.01em; }
+.lede { font-size: 18.5px; line-height: 1.55; max-width: 64ch; margin: 0; }
+.meta { margin-top: 16px; font-size: 13px; color: var(--muted); }
+.stats { display: flex; flex-wrap: wrap; gap: 28px; margin-top: 22px; }
+.stat b { display: block; font: 600 30px/1 var(--f-display); font-variant-numeric: tabular-nums; }
+.stat span { font-size: 13px; color: var(--muted); }
+section { padding-top: 44px; }
+h2 { font: 600 27px/1.2 var(--f-display); margin: 0 0 14px; text-wrap: balance; }
+h3 { font: 600 16px/1.3 var(--f-body); margin: 26px 0 8px; }
+p, li { max-width: 70ch; }
+p { margin: 0 0 14px; }
+ul { padding-left: 20px; margin: 0 0 14px; }
+li { margin-bottom: 6px; }
+a { color: var(--accent); }
+code { font-family: var(--f-mono); font-size: .86em; background: var(--accent-soft); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+.muted { color: var(--muted); }
+
+/* Rule-set comparison */
+.sets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 18px 0 6px; }
+.set { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; min-width: 0; border-top: 3px solid var(--c); }
+.set .tag { font: 500 11px/1 var(--f-mono); letter-spacing: .07em; text-transform: uppercase; color: var(--c); }
+.set h3 { margin: 8px 0 2px; font: 600 21px/1.2 var(--f-display); }
+.set .src { font-size: 13px; color: var(--muted); margin: 0 0 12px; }
+.set dl { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 8px 12px; margin: 0; font-size: 14px; }
+.set dt { font: 500 12.5px/1.5 var(--f-mono); color: var(--muted); }
+.set dd { margin: 0; }
+.chip { display: inline-block; font: 500 11px/1 var(--f-mono); padding: 3px 7px; border-radius: 999px; margin-left: 4px; vertical-align: 1px; }
+.chip.age { background: var(--c-soft); color: var(--c); }
+.chip.fixed { background: var(--same-bg); color: var(--same); }
+
+/* Input flow */
+.calcbox { font: 400 13.5px/1.7 var(--f-mono); background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 16px 18px; overflow-x: auto; white-space: pre; margin: 14px 0; }
+.calcbox .c { color: var(--muted); }
+.inputs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 16px 0; }
+.inp { border-top: 2px solid var(--line); padding-top: 10px; }
+.inp b { display: block; font-size: 14.5px; }
+.inp span { font-size: 13px; color: var(--muted); }
+.inp .when { font: 500 11px/1 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--accent); display: block; margin-bottom: 6px; }
+
+/* File map */
+.legend { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 4px; }
+.badge { font: 500 11px/1 var(--f-mono); letter-spacing: .05em; text-transform: uppercase; padding: 4px 8px; border-radius: 4px; white-space: nowrap; }
+.badge.new { background: var(--new-bg); color: var(--new); }
+.badge.chg { background: var(--chg-bg); color: var(--chg); }
+.badge.same { background: var(--same-bg); color: var(--same); }
+.group { margin-top: 22px; }
+.group h3 { margin: 0 0 8px; display: flex; align-items: baseline; gap: 10px; }
+.group h3 small { font: 400 13px/1 var(--f-mono); color: var(--muted); }
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 620px; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+tr:last-child td { border-bottom: 0; }
+th { font: 500 11px/1.3 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); background: var(--bg); }
+td.f { font: 500 13px/1.45 var(--f-mono); width: 34%; overflow-wrap: anywhere; }
+td.s { width: 92px; }
+
+/* Impact */
+.impacts { display: grid; gap: 0; margin-top: 12px; }
+.impact { display: grid; grid-template-columns: 112px minmax(0, 1fr); gap: 16px; padding: 14px 0; border-top: 1px solid var(--line); }
+.impact .sev { font: 500 11px/1.3 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; padding-top: 4px; }
+.sev.crit { color: var(--crit); } .sev.chg { color: var(--chg); } .sev.ok { color: var(--new); }
+.impact p { margin: 0; font-size: 15px; }
+.impact b { display: block; margin-bottom: 3px; font-size: 15.5px; }
+
+.decisions { list-style: none; padding: 0; counter-reset: d; }
+.decisions li { counter-increment: d; position: relative; padding: 12px 0 12px 40px; border-top: 1px solid var(--line); margin: 0; max-width: none; }
+.decisions li::before { content: counter(d); position: absolute; left: 0; top: 13px; width: 26px; height: 26px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font: 500 12.5px/26px var(--f-mono); text-align: center; }
+.decisions b { display: block; }
+.decisions span { color: var(--muted); font-size: 14.5px; }
+
+footer { margin-top: 56px; padding-top: 18px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+
+@media (max-width: 880px) {
+  .wrap { grid-template-columns: minmax(0, 1fr); gap: 0; padding-block: 28px 60px; padding-inline: 16px; }
+  nav.toc { display: none; }
+  .sets { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 560px) {
+  .inputs { grid-template-columns: minmax(0, 1fr); }
+  .impact { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+}
+
+.band { font: 500 12px/1 var(--f-mono); padding: 4px 8px; border-radius: 999px; white-space: nowrap; }
+.band.l { background: var(--new-bg); color: var(--new); }
+.band.m { background: var(--chg-bg); color: var(--chg); }
+.band.h { background: var(--crit-bg); color: var(--crit); }
+td.num { font-family: var(--f-mono); font-size: 13px; font-variant-numeric: tabular-nums; }
+td.p { font: 500 13px/1.45 var(--f-mono); overflow-wrap: anywhere; }
+table.params td.p { width: 24%; }
+.tbd { font: 500 11px/1 var(--f-mono); background: var(--crit-bg); color: var(--crit); padding: 3px 6px; border-radius: 4px; }
+.dvariants { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 10px 0 16px; }
+.dv { border-top: 2px solid var(--chg); padding-top: 10px; min-width: 0; }
+.dv .tag, .tier .tag { font: 500 11px/1 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 6px; }
+.dv b { display: block; font-size: 15px; }
+.dv p { font-size: 14px; margin: 4px 0 0; }
+.tiers2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 14px 0 6px; }
+.tier { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-width: 0; }
+.tier.t1 { border-top: 3px solid var(--crit); }
+.tier.t2 { border-top: 3px solid var(--accent); }
+.tier p { font-size: 14.5px; margin: 0; }
+section .tablewrap + h3, section .tablewrap + p { margin-top: 22px; }
+.group h3 + .tablewrap, h3 + .tablewrap { margin-top: 8px; }
+@media (max-width: 720px) { .dvariants, .tiers2 { grid-template-columns: minmax(0, 1fr); } }
+
+.steps { list-style: none; padding: 0; counter-reset: st; margin: 12px 0 16px; }
+.steps li { counter-increment: st; position: relative; padding: 9px 0 9px 38px; border-left: 2px solid var(--line); margin: 0 0 0 12px; max-width: none; }
+.steps li::before { content: counter(st); position: absolute; left: -13px; top: 8px; width: 24px; height: 24px; border-radius: 50%; background: var(--surface); border: 2px solid var(--accent); color: var(--accent); font: 500 12px/20px var(--f-mono); text-align: center; }
+.steps li:last-child { border-left-color: transparent; }
+.steps b { display: block; }
+.steps span { color: var(--muted); font-size: 14.5px; }
+.phases { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 12px 0 8px; }
+.ph { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; min-width: 0; }
+.ph .tag { font: 500 11px/1.3 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--accent); display: block; margin-bottom: 6px; }
+.ph b { display: block; font-size: 15.5px; margin-bottom: 4px; }
+.ph p { font-size: 14px; margin: 0; }
+@media (max-width: 820px) { .phases { grid-template-columns: minmax(0, 1fr); } }
+
+.ver { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 12px; font: 500 12px/1 var(--f-mono); }
+.ver .v { background: var(--accent); color: var(--surface); padding: 5px 9px; border-radius: 4px; }
+.ver .d { color: var(--muted); }
+.ver a { color: var(--accent); }
+.hist { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); margin-top: 12px; }
+.hist table { border-collapse: collapse; width: 100%; font-size: 14px; min-width: 560px; }
+.hist th, .hist td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.hist tr:last-child td { border-bottom: 0; }
+.hist th { font: 500 11px/1.3 var(--f-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--muted); background: var(--bg); }
+.hist td.vn { font: 500 13px/1.4 var(--f-mono); white-space: nowrap; width: 64px; }
+.hist td.dt { font: 400 13px/1.4 var(--f-mono); white-space: nowrap; color: var(--muted); width: 104px; }
+.hist tr.cur td.vn { color: var(--accent); }
+.hist ul { margin: 4px 0 0; padding-left: 18px; }
+.hist li { margin-bottom: 2px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav class="toc" aria-label="Sections">
+    <p>Contents</p>
+    <ol>
+      <li><a href="#decision">The two rule sets</a></li>
+      <li><a href="#inputs">What the user enters</a></li>
+      <li><a href="#design">Core design change</a></li>
+      <li><a href="#files">Files to change</a></li>
+      <li><a href="#impact">Impact</a></li>
+      <li><a href="#combine">Combining the layers</a></li>
+      <li><a href="#config">Configuration</a></li>
+      <li><a href="#admin">Admin &amp; learning loop</a></li>
+      <li><a href="#open">Open decisions</a></li>
+      <li><a href="#history">Change history</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <p class="eyebrow">NUMIC · change analysis · no code changed</p>
+      <h1>NUMIC age-based rule sets</h1>
+      <p class="lede">The plan is to replace the hand-typed VI percentile and 97th-centile reference with lookups from published age-based charts, offered as two rule sets: Levene and Brouwer. This page lists what that would change in the NUMIC repository and what it affects.</p>
+      <p class="meta">Updated: rule sets are <code>numic_flow_levene</code> (default) and <code>numic_flow_brouwer</code>, and old IDs are retired. Day of life is worked out from date of birth and scan date/time, not entered. Analysis of <code>src/numic</code>, <code>tests</code> and <code>web/clinical-demo</code> on branch master. Sources: El-Dib et al., <em>J Pediatr</em> 2020, refs 43–45. Written 5 Oct 2026.</p>
+      <div class="ver"><span class="v">Version 6</span><span class="d">Updated 5 Oct 2026</span><a href="#history">Change history</a></div>
+      <div class="stats" aria-label="Change summary">
+        <div class="stat"><b>~25</b><span>new files incl. admin &amp; learning loop</span></div>
+        <div class="stat"><b>~22</b><span>changed files</span></div>
+        <div class="stat"><b>1</b><span>file unchanged in logic</span></div>
+        <div class="stat"><b>7</b><span>open decisions</span></div>
+      </div>
+    </header>
+
+    <section id="decision">
+      <h2>The two rule sets</h2>
+      <p>The new rule sets <code>numic_flow_levene</code> and <code>numic_flow_brouwer</code> replace today's <code>numic_flow_v1</code> and <code>numic_flow_v2_pre95</code>, which are retired. <code>numic_flow_levene</code> is the default. Both share the same progression rules, clinical modifier and risk bands (0–14; low 0–3, moderate 4–7, high 8–14).</p>
+      <div class="sets">
+        <div class="set" style="--c: var(--lev); --c-soft: var(--lev-soft)">
+          <span class="tag">Rule set 1 · default · <code>numic_flow_levene</code></span>
+          <h3>Levene</h3>
+          <p class="src">Levene 1981 VI chart, with the ELVIS trial thresholds</p>
+          <dl>
+            <dt>VI</dt><dd>Levene 97th-centile line at age at scan: 1 point at or above the line, 2 points at line + 4 mm <span class="chip age">age-based</span></dd>
+            <dt>AHW</dt><dd>&lt; 6 mm → 0 · 6–10 mm → 1 · &gt; 10 mm → 2 <span class="chip fixed">fixed</span></dd>
+            <dt>TOD</dt><dd>&lt; 25 mm → 0 · 25–&lt;30 mm → 1 · ≥ 30 mm → 2 <span class="chip fixed">fixed</span></dd>
+          </dl>
+        </div>
+        <div class="set" style="--c: var(--bro); --c-soft: var(--bro-soft)">
+          <span class="tag">Rule set 2 · <code>numic_flow_brouwer</code></span>
+          <h3>Brouwer</h3>
+          <p class="src">Brouwer et al., <em>Radiology</em> 2012 (El-Dib ref 45), ages 24–42 weeks</p>
+          <dl>
+            <dt>VI</dt><dd>Brouwer 97.5th-centile line at age at scan; the 2-point rule is <strong>to be defined</strong> (line + 4 mm?) <span class="chip age">age-based</span></dd>
+            <dt>AHW</dt><dd>Brouwer 97.5th-centile line at age at scan; the 2-point rule is <strong>to be defined</strong> <span class="chip age">age-based</span></dd>
+            <dt>TOD</dt><dd>Brouwer 97.5th-centile line at age at scan; the 2-point rule is <strong>to be defined</strong> <span class="chip age">age-based</span></dd>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <section id="inputs">
+      <h2>What the user enters</h2>
+      <div class="inputs">
+        <div class="inp"><span class="when">Once per baby</span><b>Date of birth + gestational age at birth</b><span>Stored on patient info, e.g. born 2 Mar 2026 at 27+3 weeks</span></div>
+        <div class="inp"><span class="when">Each scan</span><b>Scan date and time</b><span>The existing required <code>measured_at</code> field</span></div>
+        <div class="inp"><span class="when">Each scan</span><b>VI, AHW, TOD (mm)</b><span>VI is the larger of the left and right sides</span></div>
+      </div>
+      <p>The VI percentile and VI reference fields are removed. Nobody types in a day of life: NUMIC works it out from date of birth and scan date, then works out the rest:</p>
+      <div class="calcbox" role="img" aria-label="Worked example of age at scan and reference lookup"><span class="c"># day of life = scan date − date of birth   (birth day = day 0)</span>
+<span class="c"># age at scan = gestational age at birth + day of life ÷ 7</span>
+born 2 Mar 2026 at GA 27+3  → 27.43 wk
+scan 14 Mar 2026 09:00      → day 12
+age at scan                 → 27.43 + 12/7 = 29.14 wk
+
+<span class="c"># for each metric the selected rule set treats as age-based:</span>
+reference line at 29.14 wk  ← straight-line interpolation between 29 and 30 wk in the table
+measured mm vs line         → points, plus "+1.8 mm above the line" for the explanation
+outside the chart's range   → "outside chart range" (no guessing)</div>
+    </section>
+
+    <section id="design">
+      <h2>Core design change</h2>
+      <p>Scoring currently receives only the measurements (<code>VentricularMeasurements</code>) and never sees the baby's age. Age-based thresholds need <strong>age at scan</strong> passed into the static scorer:</p>
+      <ul>
+        <li><strong>Date of birth</strong> stays on <code>PatientInfo</code>. The field <code>date_of_birth</code> already exists. It changes from optional to required for scoring with age-based rule sets.</li>
+        <li><strong>Gestational age at birth</strong> is stored on <code>PatientInfo</code> as weeks + days. The existing <code>gestational_age_weeks</code> is documented as "gestational age <em>at scan</em>", which conflicts and should be replaced.</li>
+        <li><strong>Scan date and time</strong> is the existing required <code>MeasurementContext.measured_at</code>. No new per-scan field is needed.</li>
+        <li>The API works out day of life (scan date − date of birth) and age at scan for each scan, and passes age to scoring. It rejects a scan dated before the birth.</li>
+        <li>Each metric rule in <code>StaticRules</code> becomes either a <strong>fixed threshold</strong> or a <strong>reference-line threshold</strong> (table name + mm above the line for 2 points).</li>
+        <li>The static result returns the reference values it used (age, line in mm, distance from the line, table name), so the score stays explainable.</li>
+      </ul>
+    </section>
+
+    <section id="files">
+      <h2>Files to change</h2>
+      <div class="legend"><span class="badge new">New</span><span class="badge chg">Changed</span><span class="badge same">No logic change</span></div>
+
+      <div class="group">
+        <h3>Scoring <small>src/numic/scoring/</small></h3>
+        <div class="tablewrap"><table>
+          <thead><tr><th>File</th><th>Status</th><th>Change</th></tr></thead>
+          <tbody>
+            <tr><td class="f">nomogram/__init__.py</td><td class="s"><span class="badge new">New</span></td><td>Reference-line lookup by age (straight-line interpolation), refusal outside the table's range, and the age-at-scan calculation from date of birth, gestational age and scan date.</td></tr>
+            <tr><td class="f">nomogram/levene.py</td><td class="s"><span class="badge new">New</span></td><td>Levene VI 97th-centile table, by week of age.</td></tr>
+            <tr><td class="f">nomogram/brouwer.py</td><td class="s"><span class="badge new">New</span></td><td>Brouwer VI, AHW and TOD 97.5th-centile tables, 24–42 weeks.</td></tr>
+            <tr><td class="f">rules/models.py</td><td class="s"><span class="badge chg">Changed</span></td><td><code>StaticRules</code> moves from fixed mm values plus a percentile gate to a fixed or reference-line threshold for each metric.</td></tr>
+            <tr><td class="f">rules/bundles.py</td><td class="s"><span class="badge chg">Changed</span></td><td>Delete <code>NUMIC_FLOW_V1</code>, <code>NUMIC_FLOW_V2_PRE95</code> and <code>_STATIC_V2_PRE95</code>. Add <code>numic_flow_levene</code> and <code>numic_flow_brouwer</code>, and set <code>DEFAULT_SCORE_VERSION = "numic_flow_levene"</code>. Progression, clinical and risk-band rules are shared.</td></tr>
+            <tr><td class="f">rules/__init__.py, scoring/__init__.py</td><td class="s"><span class="badge chg">Changed</span></td><td>Exports.</td></tr>
+            <tr><td class="f">static/service.py</td><td class="s"><span class="badge chg">Changed</span></td><td><code>score_vi</code>, <code>score_ahw</code> and <code>score_tod</code> take age at scan and use reference lines. The "vi_percentile is required" error is removed.</td></tr>
+            <tr><td class="f">progression/service.py</td><td class="s"><span class="badge same">Same</span></td><td>Still compares mm differences between scans.</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+
+      <div class="group">
+        <h3>API <small>src/numic/api/</small></h3>
+        <div class="tablewrap"><table>
+          <thead><tr><th>File</th><th>Status</th><th>Change</th></tr></thead>
+          <tbody>
+            <tr><td class="f">schemas/scoring.py</td><td class="s"><span class="badge chg">Changed</span></td><td>Remove <code>vi_percentile</code> and <code>vi_p97_reference_mm</code>. Add age at scan to the score requests and the reference values used to <code>StaticScoreResult</code>. Change the seven <code>"numic_flow_v1"</code> defaults and descriptions to <code>numic_flow_levene</code>, ideally all reading <code>DEFAULT_SCORE_VERSION</code> instead of repeating the string.</td></tr>
+            <tr><td class="f">schemas/measurement.py</td><td class="s"><span class="badge chg">Changed</span></td><td><code>PatientInfo</code>: gestational age at birth as weeks + days, replacing <code>gestational_age_weeks</code>, and <code>date_of_birth</code> (already present) documented as required for age-based scoring. <code>MeasurementContext</code> is unchanged. Remove the percentile and reference fields from the manual, coronal-landmark and overlay request models.</td></tr>
+            <tr><td class="f">schemas/demo.py</td><td class="s"><span class="badge chg">Changed</span></td><td>Default rule set <code>numic_flow_v1</code> becomes <code>numic_flow_levene</code>. The response includes age at scan and reference values for each scan.</td></tr>
+            <tr><td class="f">v1/demo_router.py</td><td class="s"><span class="badge chg">Changed</span></td><td>Works out age at scan for the prior and current scans from date of birth, gestational age and each <code>measured_at</code>. Returns 422 if date of birth or gestational age is missing, a scan is dated before the birth, or the prior scan isn't earlier than the current one.</td></tr>
+            <tr><td class="f">v1/router.py</td><td class="s"><span class="badge chg">Changed</span></td><td><code>/score/*</code> endpoints take age, and the coronal-landmark endpoint stops passing percentile. <code>/score/versions</code> returns labels ("Levene 1981", "Brouwer 2012"). Optionally a new <code>GET /nomogram/{version}</code> so the chart can draw the reference lines.</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+
+      <div class="group">
+        <h3>Measurement input, CLI, database <small>src/numic/</small></h3>
+        <div class="tablewrap"><table>
+          <thead><tr><th>File</th><th>Status</th><th>Change</th></tr></thead>
+          <tbody>
+            <tr><td class="f">measurement/pipeline.py, manual_entry.py, landmarks.py</td><td class="s"><span class="badge chg">Changed</span></td><td>Stop passing percentile and reference values through.</td></tr>
+            <tr><td class="f">measurement/tabular_import.py</td><td class="s"><span class="badge chg">Changed</span></td><td>Drop the <code>vi_percentile</code> and <code>p97_ref</code> column names. Gestational age becomes weeks + days columns. <code>date_of_birth</code> and <code>measured_at</code> columns are already supported.</td></tr>
+            <tr><td class="f">cli/measure.py</td><td class="s"><span class="badge chg">Changed</span></td><td>Remove <code>--vi-percentile</code> and <code>--vi-p97-ref-mm</code>. <code>--ga-weeks</code> becomes weeks + days. <code>--dob</code> and the scan-time argument already exist.</td></tr>
+            <tr><td class="f">db/models/tables.py</td><td class="s"><span class="badge chg">Changed</span></td><td>Add <code>date_of_birth</code> and gestational age at birth to <code>Patient</code> (today it holds only <code>external_ref</code> and metadata). Swap the percentile and reference columns for the reference values used. Scan time already lives in <code>ImagingStudy.acquired_at</code>. There is no migrations folder and the demo doesn't use the database, so this is a schema edit only.</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+
+      <div class="group">
+        <h3>Tests <small>tests/</small></h3>
+        <div class="tablewrap"><table>
+          <thead><tr><th>File</th><th>Status</th><th>Change</th></tr></thead>
+          <tbody>
+            <tr><td class="f">test_nomogram.py</td><td class="s"><span class="badge new">New</span></td><td>Interpolation, out-of-range ages, the age calculation from date of birth and scan date (including a scan on the day of birth and a scan dated before the birth), and both rule sets scoring the same input.</td></tr>
+            <tr><td class="f">test_scoring.py, test_demo_endpoint.py, test_manual_entry.py, test_measurement.py, test_tabular_import.py</td><td class="s"><span class="badge chg">Changed</span></td><td>All five reference the removed fields. <code>test_scoring.py</code> asserts <code>numic_flow_v1</code> in five places, and <code>test_vi_percentile_gate_differs_by_version</code> (v1 vs v2_pre95) is deleted and replaced by a Levene vs Brouwer comparison. Add a test that a retired ID returns 422.</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+
+      <div class="group">
+        <h3>Clinical demo <small>web/clinical-demo/</small></h3>
+        <div class="tablewrap"><table>
+          <thead><tr><th>File</th><th>Status</th><th>Change</th></tr></thead>
+          <tbody>
+            <tr><td class="f">index.html</td><td class="s"><span class="badge chg">Changed</span></td><td>Patient context gets date of birth plus gestational age as weeks + days, entered once. Remove the "VI ref" input and both "VI percentile" inputs. Each scan keeps its existing date/time field. Show calculated values per scan (e.g. "day 12 · 29+1 wk · VI line 12.3 mm · +1.8 mm").</td></tr>
+            <tr><td class="f">js/measurements.js</td><td class="s"><span class="badge chg">Changed</span></td><td>Send date of birth and gestational age on the patient. Scan date/time already goes in <code>measured_at</code>.</td></tr>
+            <tr><td class="f">js/presets.js</td><td class="s"><span class="badge chg">Changed</span></td><td>Rewrite the presets with gestational age and mm. Set date of birth relative to today so the example scans always fall at sensible ages. Check each one lands in its intended band under both rule sets. Update the comment that mentions <code>numic_flow_v1</code>.</td></tr>
+            <tr><td class="f">js/trend.js</td><td class="s"><span class="badge chg">Changed</span></td><td>X-axis becomes age at scan. Draw the reference line and the line + 4 mm for each metric under the selected rule set, instead of the flat "VI ref" line.</td></tr>
+            <tr><td class="f">js/app.js</td><td class="s"><span class="badge chg">Changed</span></td><td>Re-score and redraw when the rule set changes. Show the calculated values. Replace the two hard-coded <code>numic_flow_v1</code> fallback options in the dropdown with <code>numic_flow_levene</code>.</td></tr>
+            <tr><td class="f">js/api.js, js/config.js</td><td class="s"><span class="badge chg">Changed</span></td><td>Rule-set labels, plus the reference-line endpoint if it's added.</td></tr>
+            <tr><td class="f">styles.css</td><td class="s"><span class="badge chg">Changed</span></td><td>Styling for read-only calculated fields.</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+
+      <div class="group">
+        <h3>Docs <small>docs/</small></h3>
+        <div class="tablewrap"><table>
+          <thead><tr><th>File</th><th>Status</th><th>Change</th></tr></thead>
+          <tbody>
+            <tr><td class="f">demo.md, NUMIC_overview.md, NUMIC_overview_for_stakeholders.md, NUMIC_overview.docx, NUMIC_accelerator_brief.md, NUMIC_pitch_deck.html</td><td class="s"><span class="badge chg">Changed</span></td><td>Wording only. "VI percentile / nomogram logic" and "97th lines" become the two named rule sets, and every <code>numic_flow_v1</code> example becomes <code>numic_flow_levene</code>.</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </section>
+
+    <section id="impact">
+      <h2>Impact</h2>
+      <div class="impacts">
+        <div class="impact"><span class="sev crit">Blocker</span><p><b>Brouwer's 2-point thresholds are not defined yet.</b> ELVIS gives two cut-offs per metric, and Brouwer gives one 97.5th-centile line per age. Scoring above the line as 1 point is clear. What earns 2 points needs a clinical decision: line + N mm, a second centile, or El-Dib Figure 4's risk zones. The same applies to VI under Brouwer.</p></div>
+        <div class="impact"><span class="sev crit">Blocker</span><p><b>The reference tables are a hard dependency.</b> Levene's VI values and Brouwer's VI, AHW and TOD values must come from the original papers or El-Dib's linked spreadsheets (check their terms of use first). They are clinical content and need a clinician to check them.</p></div>
+        <div class="impact"><span class="sev chg">Behaviour</span><p><b>Scores change for the same input.</b> Thresholds now depend on age, so the same mm values can give a different band than today. The new names keep these results apart from <code>numic_flow_v1</code> results, so older results stay traceable to the rules that produced them. Both names fit the database's 32-character <code>score_version</code> column.</p></div>
+        <div class="impact"><span class="sev chg">Retired IDs</span><p><b>Requests naming <code>numic_flow_v1</code> or <code>numic_flow_v2_pre95</code> are rejected.</b> <code>get_rules</code> already returns 422 with the list of known IDs, so callers see what to switch to. <code>/score/versions</code> lists only the two new rule sets. Later threshold changes are published as new <strong>revisions</strong> of the same rule set (for example <code>numic_flow_levene@2</code>), made through the admin editor and never by editing a published revision in place.</p></div>
+        <div class="impact"><span class="sev chg">Breaking API</span><p><b>Inputs change.</b> <code>vi_percentile</code> and <code>vi_p97_reference_mm</code> disappear, and date of birth and gestational age at birth become required for scoring. There are no outside users yet, so a clean break is cheaper than supporting both.</p></div>
+        <div class="impact"><span class="sev chg">Coverage</span><p><b>Age-range limits differ.</b> Brouwer covers 24–42 weeks, and Levene's chart starts around 26 weeks. A very premature baby scanned early may be scorable under Brouwer but not Levene. The design should say "outside chart range" rather than guess.</p></div>
+        <div class="impact"><span class="sev ok">Simpler</span><p><b>Day of life is worked out, not entered.</b> It comes from date of birth and the existing scan date/time (<code>measured_at</code>), so there's no new per-scan field and no risk of the two disagreeing. <code>PatientInfo.date_of_birth</code> already exists, and spreadsheet import and the CLI already accept it.</p></div>
+        <div class="impact"><span class="sev chg">Privacy</span><p><b>Date of birth is identifying data.</b> Storing it on patient info brings it under UK GDPR and DPIA scope for any real-patient use. On the public website demo it should only ever hold a synthetic default (for example derived from today's date), with a clear "do not enter real patient details" note.</p></div>
+        <div class="impact"><span class="sev chg">Edge cases</span><p><b>Date and time zones.</b> Date of birth is a date, while scan time is a timezone-aware datetime. Day of life should use the scan's date in the hospital's local time, or a scan just after midnight UTC could be counted as the wrong day. A scan dated before the birth is rejected.</p></div>
+        <div class="impact"><span class="sev chg">Hosting</span><p><b>This affects how the website demo is hosted.</b> If scoring runs in the browser (option A), the tables would exist in both Python and JS. Keeping them in one shared JSON file used by both removes the risk of the two copies drifting apart.</p></div>
+        <div class="impact"><span class="sev ok">Unchanged</span><p><b>Progression, the clinical modifier and the risk bands stay the same.</b> Scores still run 0–14, and the low, moderate and high bands keep their boundaries.</p></div>
+      </div>
+    </section>
+
+    <section id="combine">
+      <h2>Combining the three layers</h2>
+      <p>The final band is currently a plain sum: static (0–6) + progression (0–6) + clinical (0–2) = 0–14, with low 0–3, moderate 4–7 and high 8–14. A plain sum has two blind spots that follow directly from the code:</p>
+      <ul>
+        <li><strong>One measurement in its worst band can stay low.</strong> VI 0, AHW 0, TOD 2, no growth and mild concern gives 3, which is low.</li>
+        <li><strong>A first scan can't reach high without clear clinical concern.</strong> With no prior scan, progression is 0. All three metrics in their worst band gives 6, which is moderate, even though it meets the ELVIS high threshold (VI &gt; 97th + 4 mm and AHW &gt; 10 mm).</li>
+      </ul>
+      <p>El-Dib's Brouwer-based tool (Figure 4) plots each measurement on its own chart with its own moderate and high risk zones, so one abnormal measurement is visible on its own. There is also a clinical counterpoint: under the ELVIS lower threshold, a large TOD only counts together with VI above the 97th centile. Whether an isolated large TOD should be low is a clinical question.</p>
+
+      <h3>Options</h3>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Option</th><th>How it works</th><th>Trade-off</th></tr></thead>
+        <tbody>
+          <tr><td><b>A. Keep the plain sum</b></td><td>As today.</td><td>Simple, but keeps both blind spots.</td></tr>
+          <tr><td><b>B. Minimum-band rules</b> <span class="badge new">Recommended now</span></td><td>Keep the sum, plus versioned rules such as "any metric at 2 points → at least moderate", "ELVIS high threshold met → high" and "clear clinical concern → at least moderate". The explanation states why the band was raised.</td><td>Stays transparent and fits the versioned rule sets. Each rule needs clinician sign-off.</td></tr>
+          <tr><td><b>C. Worst-metric zones</b></td><td>Band = worst zone across the metrics, as in El-Dib's tool. Progression and clinical concern act as modifiers.</td><td>Matches the published tool, but moves away from the 0–14 score used in the pitch.</td></tr>
+          <tr><td><b>D. Change points, weights or cut-offs</b> <span class="badge chg">Later, with data</span></td><td>Keep a plain sum, but change what each band or layer is worth, or where the bands start.</td><td>A calibration knob. Moves every case, not just the problem patterns.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Option D in detail</h3>
+      <div class="dvariants">
+        <div class="dv"><span class="tag">D1</span><b>Move the band cut-offs</b><p>Points stay the same. Illustrative bands: low 0–2 · moderate 3–5 · high 6–14.</p></div>
+        <div class="dv"><span class="tag">D2</span><b>Non-linear points</b><p>Each static metric scores 0 / 1 / <strong>3</strong>, so the worst band counts for more. Total 0–17. Illustrative bands: low 0–3 · moderate 4–8 · high 9–17.</p></div>
+        <div class="dv"><span class="tag">D3</span><b>Weight the layers</b><p>Total = 2 × static + progression + clinical, 0–20. Illustrative bands: low 0–4 · moderate 5–10 · high 11–20.</p></div>
+      </div>
+      <p class="muted">Worked comparison. The D cut-offs are illustrative and only show the behaviour; they are not proposals. Points are written as static VI/AHW/TOD · progression · clinical.</p>
+      <div class="tablewrap"><table class="cmp">
+        <thead><tr><th>Case</th><th>Points</th><th>Today</th><th>D1</th><th>D2</th><th>D3</th></tr></thead>
+        <tbody>
+          <tr><td>1. Large TOD with mild concern</td><td class="num">0/0/2 · 0 · 1</td><td><span class="band l">Low 3</span></td><td><span class="band m">Mod 3</span></td><td><span class="band m">Mod 4</span></td><td><span class="band m">Mod 5</span></td></tr>
+          <tr><td>2. First scan meets ELVIS high threshold</td><td class="num">2/2/0 · none · 0</td><td><span class="band m">Mod 4</span></td><td><span class="band m">Mod 4</span></td><td><span class="band m">Mod 6</span></td><td><span class="band m">Mod 8</span></td></tr>
+          <tr><td>3. First scan, all three in worst band</td><td class="num">2/2/2 · none · 0</td><td><span class="band m">Mod 6</span></td><td><span class="band h">High 6</span></td><td><span class="band h">High 9</span></td><td><span class="band h">High 12</span></td></tr>
+          <tr><td>4. Mildly above the line, slight growth</td><td class="num">1/1/0 · VI 1 · 0</td><td><span class="band l">Low 3</span></td><td><span class="band m">Mod 3</span></td><td><span class="band l">Low 3</span></td><td><span class="band m">Mod 5</span></td></tr>
+          <tr><td>5. Normal size, growing, clear concern</td><td class="num">0/0/0 · 1+1+1 · 2</td><td><span class="band m">Mod 5</span></td><td><span class="band m">Mod 5</span></td><td><span class="band m">Mod 5</span></td><td><span class="band m">Mod 5</span></td></tr>
+          <tr><td>6. Large TOD only</td><td class="num">0/0/2 · 0 · 0</td><td><span class="band l">Low 2</span></td><td><span class="band l">Low 2</span></td><td><span class="band l">Low 3</span></td><td><span class="band l">Low 4</span></td></tr>
+        </tbody>
+      </table></div>
+      <h3>What the comparison shows</h3>
+      <ul>
+        <li><strong>D can fix the large-TOD case.</strong> All three variants move case 1 to moderate.</li>
+        <li><strong>It does so by moving other babies too.</strong> D1 and D3 also move case 4 to moderate, which means more babies on tighter surveillance and more alerts.</li>
+        <li><strong>D can't express "this AND that".</strong> Case 2 meets the ELVIS high threshold yet stays moderate in every variant. A sum treats all combinations with the same total alike, so making "VI high + AHW high" reach high also pushes other combinations with the same total to high.</li>
+        <li><strong>A first scan is penalised in every variant.</strong> With no prior scan, up to 6 of 14 points can't be scored. This needs its own first-scan policy (see configuration below).</li>
+        <li><strong>D is the right tool once there is outcome data.</strong> In established clinical risk scores, weights and cut-offs are fitted to outcomes (for example reservoir or shunt, or 2-year neurodevelopment) and then validated on separate patients. Without data, hand-picked weights only look precise.</li>
+      </ul>
+      <p><strong>Recommendation:</strong> use B now for the clinically known patterns, and keep D for recalibration once pilot or retrospective outcome data exist. Separately, decide how a first scan with no prior is banded. D2 and D3 would also break the current 0–14, 0–6 and 0–2 limits in <code>api/schemas/scoring.py</code> and <code>demo.py</code>, the hard-coded "Low 0–3 / Moderate 4–7 / High 8–14" labels in the demo, and the "0–14" wording in the pitch materials.</p>
+    </section>
+
+    <section id="config">
+      <h2>Configuration parameters</h2>
+      <p>Today the only app setting is the database URL (<code>core/config.py</code>, <code>NUMIC_</code> environment prefix). Every clinical threshold is a Python constant in <code>rules/bundles.py</code>. The parameters below should be configurable, in two tiers that are governed differently:</p>
+      <div class="tiers2">
+        <div class="tier t1"><span class="tag">Tier 1 · clinical rule-set parameters</span><p>Change scores. Admins edit them in the rule editor (see the next section). The JSON files (for example <code>rule_sets/numic_flow_levene.json</code>) hold the factory values that pre-fill revision 1. A published revision is read-only; changing any value creates a draft that becomes a <strong>new revision</strong> once an approver publishes it, so past results stay traceable. They are never changed per request.</p></div>
+        <div class="tier t2"><span class="tag">Tier 2 · deployment and display settings</span><p>Never change a score. Environment variables (<code>NUMIC_*</code> via pydantic-settings) for the backend and <code>config.js</code> for the demo. They can be changed per deployment without a new rule-set version.</p></div>
+      </div>
+
+      <h3>Tier 1 · rule-set identity</h3>
+      <div class="tablewrap"><table class="params">
+        <thead><tr><th>Parameter</th><th>Levene</th><th>Brouwer</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="p">score_version</td><td class="num">numic_flow_levene</td><td class="num">numic_flow_brouwer</td><td>Rule-set family. Each published change becomes a new revision, e.g. <code>numic_flow_levene@2</code>.</td></tr>
+          <tr><td class="p">label, source_citation</td><td>"Levene 1981 + ELVIS"</td><td>"Brouwer 2012"</td><td>Shown in the rule-set dropdown and on every result.</td></tr>
+          <tr><td class="p">status</td><td class="num">active</td><td class="num">active</td><td><code>active</code> or <code>retired</code>. Retired IDs return 422 with the list of valid IDs.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Tier 1 · age at scan</h3>
+      <div class="tablewrap"><table class="params">
+        <thead><tr><th>Parameter</th><th>Levene</th><th>Brouwer</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="p">age_range_weeks</td><td class="num">from table (~26–42)</td><td class="num">24–42</td><td>Ages outside the range are not extrapolated.</td></tr>
+          <tr><td class="p">out_of_range_behaviour</td><td class="num">reject</td><td class="num">reject</td><td><code>reject</code> ("outside chart range") or <code>allow_manual_override</code>, recorded as overridden in the audit trail.</td></tr>
+          <tr><td class="p">interpolation</td><td class="num">linear</td><td class="num">linear</td><td>Between whole-week table rows.</td></tr>
+          <tr><td class="p">vi_side_policy</td><td class="num">max</td><td class="num">max</td><td>Which VI to score: <code>max</code> of left and right, <code>left</code>, <code>right</code> or <code>each</code>.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Tier 1 · static thresholds (per metric)</h3>
+      <div class="tablewrap"><table class="params">
+        <thead><tr><th>Parameter</th><th>Levene</th><th>Brouwer</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="p">vi.kind, vi.table</td><td class="num">reference line · levene_vi_p97</td><td class="num">reference line · brouwer_vi_p97_5</td><td>Each metric is either <code>fixed</code> or a <code>reference line</code> from a named table.</td></tr>
+          <tr><td class="p">vi.one_point_offset_mm</td><td class="num">0</td><td class="num">0</td><td>1 point at or above line + offset.</td></tr>
+          <tr><td class="p">vi.two_point_offset_mm</td><td class="num">4</td><td class="num"><span class="tbd">TBD</span></td><td>ELVIS high threshold for Levene. Open decision for Brouwer.</td></tr>
+          <tr><td class="p">ahw.kind</td><td class="num">fixed</td><td class="num">reference line · brouwer_ahw_p97_5</td><td></td></tr>
+          <tr><td class="p">ahw.one_point / two_point</td><td class="num">≥ 6 mm / &gt; 10 mm</td><td class="num">line + 0 / <span class="tbd">TBD</span></td><td>Today's code: &lt; 6 → 0, ≤ 10 → 1, &gt; 10 → 2.</td></tr>
+          <tr><td class="p">tod.kind</td><td class="num">fixed</td><td class="num">reference line · brouwer_tod_p97_5</td><td></td></tr>
+          <tr><td class="p">tod.one_point / two_point</td><td class="num">≥ 25 mm / ≥ 30 mm</td><td class="num">line + 0 / <span class="tbd">TBD</span></td><td>Today's code: &lt; 25 → 0, &lt; 30 → 1, ≥ 30 → 2.</td></tr>
+          <tr><td class="p">points_per_band</td><td class="num">0 / 1 / 2</td><td class="num">0 / 1 / 2</td><td>Option D2 would set 0 / 1 / 3.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Tier 1 · progression</h3>
+      <div class="tablewrap"><table class="params">
+        <thead><tr><th>Parameter</th><th>Levene</th><th>Brouwer</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="p">vi_ahw_worsening_mm</td><td class="num">1 / 2</td><td class="num">1 / 2</td><td>&lt; 1 → 0, &lt; 2 → 1, ≥ 2 → 2 (today's values).</td></tr>
+          <tr><td class="p">tod_worsening_mm</td><td class="num">2 / 4</td><td class="num">2 / 4</td><td>&lt; 2 → 0, &lt; 4 → 1, ≥ 4 → 2.</td></tr>
+          <tr><td class="p">ignore_shrinkage</td><td class="num">true</td><td class="num">true</td><td>Negative change counts as 0 (today's behaviour).</td></tr>
+          <tr><td class="p">rate_basis</td><td class="num">mm</td><td class="num">mm</td><td><code>mm</code> (today) or <code>mm_per_day</code>. Today 2 mm over 2 days scores the same as over 3 weeks.</td></tr>
+          <tr><td class="p">prior_scan_selection</td><td class="num">most recent</td><td class="num">most recent</td><td>Which earlier scan to compare against once scans are stored.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Tier 1 · clinical modifier and combination</h3>
+      <div class="tablewrap"><table class="params">
+        <thead><tr><th>Parameter</th><th>Levene</th><th>Brouwer</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="p">clinical_points</td><td class="num">none 0 · mild 1 · clear 2</td><td class="num">same</td><td>Today's values.</td></tr>
+          <tr><td class="p">layer_weights</td><td class="num">1 · 1 · 1</td><td class="num">1 · 1 · 1</td><td>Static · progression · clinical. Option D3 would set 2 · 1 · 1.</td></tr>
+          <tr><td class="p">band_cutoffs</td><td class="num">low ≤ 3 · moderate ≤ 7</td><td class="num">same</td><td>Moderate must be above low; the code already checks this. The score maximum is worked out from the weights and points.</td></tr>
+          <tr><td class="p">minimum_band_rules</td><td class="num">list</td><td class="num">list</td><td>Option B. Each rule has an ID, a condition, the minimum band and on/off, e.g. <code>any_metric_2pt → moderate</code>, <code>elvis_high → high</code>, <code>clinical_clear → moderate</code>. Clinician sign-off per rule.</td></tr>
+          <tr><td class="p">first_scan_policy</td><td class="num"><span class="tbd">TBD</span></td><td class="num"><span class="tbd">TBD</span></td><td><code>progression_zero</code> (today), <code>separate_cutoffs</code> (band on static + clinical only) or <code>baseline_flag</code> (show "no trend yet").</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>Tier 2 · deployment and display</h3>
+      <div class="tablewrap"><table class="params">
+        <thead><tr><th>Parameter</th><th>Where</th><th>Default</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td class="p">NUMIC_DEFAULT_SCORE_VERSION</td><td>backend env</td><td class="num">numic_flow_levene</td><td>Used when a request names no rule set.</td></tr>
+          <tr><td class="p">NUMIC_ENABLED_SCORE_VERSIONS</td><td>backend env</td><td class="num">levene, brouwer</td><td>Which active rule sets a deployment offers.</td></tr>
+          <tr><td class="p">NUMIC_SCAN_DAY_TIMEZONE</td><td>backend env</td><td class="num">Europe/London</td><td>Defines the scan's calendar day when working out day of life.</td></tr>
+          <tr><td class="p">NUMIC_DATABASE_URL, NUMIC_DATABASE_ECHO</td><td>backend env</td><td class="num">existing</td><td>Already in <code>core/config.py</code>.</td></tr>
+          <tr><td class="p">band labels and suggested-action text</td><td>demo config.js</td><td>"Routine monitoring" etc.</td><td>Match the unit's local pathway. Keep neutral wording on the public site.</td></tr>
+          <tr><td class="p">disclaimer banner text</td><td>demo config.js</td><td>"Clinical demonstration only…"</td><td></td></tr>
+          <tr><td class="p">demo date-of-birth default</td><td>demo config.js</td><td>relative to today</td><td>Synthetic only on the public site.</td></tr>
+          <tr><td class="p">show_raw_json, api.basePath, features.*</td><td>demo config.js</td><td>existing</td><td><code>basePath</code> and <code>experimentalImageUpload</code> already exist.</td></tr>
+        </tbody>
+      </table></div>
+
+      <h3>What this adds to the change list</h3>
+      <ul>
+        <li><strong>New:</strong> <code>rule_sets/numic_flow_levene.json</code> and <code>rule_sets/numic_flow_brouwer.json</code> as factory seeds, and a <code>scoring/rules/loader.py</code> (extended in the admin section below to load the active revision from the database).</li>
+        <li><strong>Changed:</strong> <code>rules/bundles.py</code> loads the files instead of holding constants. <code>core/config.py</code> gains the Tier 2 settings. The demo's <code>config.js</code> takes the display text.</li>
+        <li><strong>Hosting:</strong> the same JSON rule-set files can be read by the browser if the demo runs scoring client-side (hosting option A), so Python and JS can't drift apart.</li>
+      </ul>
+    </section>
+
+    <section id="admin">
+      <h2>Admin rule editor, clinician decisions and learning loop</h2>
+      <p>Three connected features: an admin edits the rule-set values in the app, clinicians can record the band they actually decided, and over time the gap between NUMIC's band and the clinician's band (and later, outcomes) suggests better thresholds. Each feature depends on the one before it.</p>
+
+      <h3>1 · Admin rule editor</h3>
+      <p>Admins can edit every Tier 1 value in the configuration section above, pre-filled with today's values:</p>
+      <ul>
+        <li><strong>Band cut-offs:</strong> low ≤ 3, moderate ≤ 7.</li>
+        <li><strong>Static layer:</strong> points per band and the thresholds for VI, AHW and TOD (fixed mm or reference-line offsets).</li>
+        <li><strong>Progression layer:</strong> the mm cut-offs for VI/AHW (1 / 2) and TOD (2 / 4), and the points they earn.</li>
+        <li><strong>Clinical layer:</strong> points for none, mild and clear concern (0 / 1 / 2).</li>
+        <li><strong>Later:</strong> minimum-band rules and the first-scan policy, once decided.</li>
+      </ul>
+      <p>To keep every result traceable, an edit never changes a rule set that has already produced scores. Editing creates a draft copy, and publishing turns the draft into a new <strong>revision</strong>:</p>
+      <ol class="steps">
+        <li><b>Published</b><span>e.g. <code>numic_flow_levene@1</code>, the factory values from the JSON seed file. Read-only.</span></li>
+        <li><b>Edit → draft</b><span>The admin clicks Edit. A draft copy opens with every value pre-filled, and only drafts can be changed.</span></li>
+        <li><b>Validate</b><span>Thresholds must increase, points must stay in allowed ranges, band cut-offs must fit within the maximum score, and named reference tables must exist.</span></li>
+        <li><b>Preview impact</b><span>Re-score recently stored assessments with the draft and show how many would change band, and which ones.</span></li>
+        <li><b>Approve and publish</b><span>A second person with the approver role (e.g. the clinical lead) approves the draft with a reason. It becomes <code>numic_flow_levene@2</code> and the active revision.</span></li>
+        <li><b>Roll back</b><span>Any earlier revision can be made active again. Old results always keep the revision that produced them.</span></li>
+      </ol>
+      <p>Every step is written to an audit trail: who, when, the before/after differences, and the reason. A revision ID such as <code>numic_flow_brouwer@12</code> fits the existing 32-character <code>score_version</code> column.</p>
+
+      <h3>2 · Clinician decision capture (optional)</h3>
+      <p>When decision capture is turned on for a deployment, the clinician can record the band they decided after seeing NUMIC's result. For example, NUMIC says moderate and the clinician decides low.</p>
+      <div class="tablewrap"><table class="params">
+        <thead><tr><th>Field</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td class="p">risk_report_id</td><td>Links to the stored result. <code>RiskReport</code> already holds the static, progression and clinical scores, total, predicted band and rule version. The raw mm values and changes are in <code>Measurement</code> and <code>ProgressionEvaluation</code>.</td></tr>
+          <tr><td class="p">decided_band</td><td>The clinician's final band: low, moderate or high.</td></tr>
+          <tr><td class="p">agrees_with_predicted</td><td>Worked out automatically; not typed in.</td></tr>
+          <tr><td class="p">decided_at</td><td>When the decision was made. Defaults to now and can be corrected.</td></tr>
+          <tr><td class="p">recorded_at, decided_by</td><td>Set by the system: when it was entered and by which user and role.</td></tr>
+          <tr><td class="p">reason_codes, notes</td><td>Structured reasons for disagreeing (clinical picture, doubt about the measurement, local protocol, other) plus optional text.</td></tr>
+          <tr><td class="p">action_taken</td><td>Optional: routine scans, increased surveillance, lumbar puncture, neurosurgical referral, reservoir.</td></tr>
+          <tr><td class="p">supersedes_id</td><td>Records are never edited. A correction is a new record that replaces the previous one.</td></tr>
+        </tbody>
+      </table></div>
+      <p>Each stored case then holds the raw measurements, age at scan, changes and time between scans, layer scores, the predicted band and rule revision, and the clinician's band with its timestamps. Storing the raw mm values matters: new mm thresholds can only be learned from raw mm, not from points.</p>
+
+      <h3>3 · Learning loop</h3>
+      <div class="phases">
+        <div class="ph"><span class="tag">Phase 1 · from the first cases</span><b>Agreement dashboard</b><p>Predicted band vs clinician band as a 3 × 3 table, override rate per band and per rule revision, and which metrics were abnormal in the overridden cases. This is useful long before there is enough data for a model.</p></div>
+        <div class="ph"><span class="tag">Phase 2 · once enough cases exist</span><b>Threshold suggestions</b><p>An offline job fits an ordinal logistic regression (bands are ordered) on the raw inputs: mm relative to the reference line, change per day, and clinical concern. It turns the fitted model into suggested cut-offs and saves them as a <strong>draft revision</strong> with its evidence: case count, agreement before and after (cross-validated), calibration, and the cases that would change band.</p></div>
+        <div class="ph"><span class="tag">Phase 3 · always</span><b>Human approval</b><p>A suggestion goes through the same review → approve → publish path as a manual edit. It is never applied automatically. Until a configurable minimum number of cases is reached, the app shows "not enough data yet".</p></div>
+      </div>
+
+      <h3>Things to get right</h3>
+      <div class="impacts">
+        <div class="impact"><span class="sev crit">Ground truth</span><p><b>The clinician's band isn't the right answer, only another opinion.</b> Training on it teaches NUMIC to copy local practice, including its variation between people. Clinicians also see NUMIC's band first, which pulls their decision toward it, so the model would partly learn from itself. Mitigations: also record <strong>outcomes</strong> (lumbar puncture, reservoir, shunt and their dates; later, neurodevelopmental follow-up) and use them as the primary target. In an evaluation study, the clinician can record their own band <em>before</em> seeing NUMIC's.</p></div>
+        <div class="impact"><span class="sev crit">Data volume</span><p><b>A model needs enough events.</b> A common rule of thumb is 10–20 events per model parameter. High-band cases are rare, so useful suggestions likely need many months of data, probably from several units.</p></div>
+        <div class="impact"><span class="sev crit">Governance</span><p><b>This stores real patient data and reuses it.</b> It needs a DPIA and information-governance approval. Using routine data to build a model is likely to need research approval (ethics and, in the UK, possibly HRA/CAG) or a carefully scoped service-evaluation route. Analysis should run on a pseudonymised extract.</p></div>
+        <div class="impact"><span class="sev chg">Regulatory</span><p><b>Editable clinical thresholds and data-driven updates change how the device behaves.</b> Under a software-as-a-medical-device route, sites may only be allowed to edit within validated ranges, and threshold updates need change control. Regulators' "predetermined change control plan" approach (for algorithms expected to change) is the relevant idea to raise with QMS advisers early.</p></div>
+        <div class="impact"><span class="sev chg">Dependencies</span><p><b>Users, roles and migrations don't exist yet.</b> Today there is no login, and the database tables are created without migrations. Admin, approver and clinician roles need authentication, and stored clinical data needs real migrations (Alembic).</p></div>
+        <div class="impact"><span class="sev chg">Public demo</span><p><b>Keep both features out of the public website demo.</b> No real decisions are stored there. The rule editor could appear as a sandbox whose edits stay in the visitor's browser.</p></div>
+      </div>
+
+      <h3>What this adds to the change list</h3>
+      <div class="tablewrap"><table>
+        <thead><tr><th>Area</th><th>Status</th><th>Change</th></tr></thead>
+        <tbody>
+          <tr><td class="f">db/models/tables.py + Alembic migrations</td><td class="s"><span class="badge new">New</span></td><td>New tables: <code>rule_sets</code> (family, revision, status draft/published/retired, config, created by/at, approved by/at, reason), <code>rule_set_audit</code>, <code>clinical_decisions</code>, <code>outcome_events</code>, <code>threshold_suggestions</code>, plus users/roles or a link to the hospital's identity provider. <code>RiskReport</code> links to the rule revision.</td></tr>
+          <tr><td class="f">scoring/rules/loader.py, validation.py</td><td class="s"><span class="badge new">New</span></td><td>Load the active revision from the database, using the JSON files only as factory seeds. Shared validation for admin edits and suggestions.</td></tr>
+          <tr><td class="f">api/v1/admin_router.py</td><td class="s"><span class="badge new">New</span></td><td>List and view rule sets, create a draft, edit, validate, preview impact, approve and publish, roll back, retire, and view the audit trail.</td></tr>
+          <tr><td class="f">api/v1/assessments_router.py</td><td class="s"><span class="badge new">New</span></td><td>Store a scored assessment (<code>RiskReport</code>), record a decision against it, record outcomes.</td></tr>
+          <tr><td class="f">analytics/agreement.py, suggest.py</td><td class="s"><span class="badge new">New</span></td><td>Agreement dashboard data, and the offline threshold-suggestion job (adds statsmodels or scikit-learn).</td></tr>
+          <tr><td class="f">core/auth.py</td><td class="s"><span class="badge new">New</span></td><td>Login and roles: admin, approver, clinician.</td></tr>
+          <tr><td class="f">web/admin/</td><td class="s"><span class="badge new">New</span></td><td>Rule editor (pre-filled form, differences, impact preview, approve), agreement dashboard, suggestion review.</td></tr>
+          <tr><td class="f">web/clinical-demo/ (clinician UI)</td><td class="s"><span class="badge chg">Changed</span></td><td>"Record decision" panel below the risk band, shown only when capture is on.</td></tr>
+          <tr><td class="f">core/config.py</td><td class="s"><span class="badge chg">Changed</span></td><td>Tier 2 settings: <code>NUMIC_CAPTURE_DECISIONS</code> (on/off), <code>NUMIC_MIN_CASES_FOR_SUGGESTION</code>, and authentication settings.</td></tr>
+          <tr><td class="f">tests/</td><td class="s"><span class="badge new">New</span></td><td>Draft → publish lifecycle, validation, immutable published revisions, decision recording and replacement, the agreement calculations, and the suggestion job on synthetic data.</td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <section id="open">
+      <h2>Open decisions</h2>
+      <ol class="decisions">
+        <li><b>Who can approve a rule-set revision</b><span>For example the unit's clinical lead, with the admin who drafted it unable to approve their own draft.</span></li>
+        <li><b>What the learning loop learns from</b><span>Clinician band only, outcomes only (lumbar puncture, reservoir, shunt, follow-up), or both with outcomes as the primary target.</span></li>
+        <li><b>Approval route for storing and reusing decisions</b><span>DPIA and information governance, and whether model building runs as research (ethics, HRA/CAG) or service evaluation.</span></li>
+        <li><b>How the layers combine into a band</b><span>Recommended: keep the sum and add minimum-band rules (option B), each signed off by a clinician. Keep option D for recalibration once outcome data exist.</span></li>
+        <li><b>First-scan policy</b><span>How a scan with no prior is banded: progression counted as 0 (today), separate cut-offs, or a "baseline, no trend yet" flag.</span></li>
+        <li><b>How Brouwer scores 2 points for VI, AHW and TOD</b><span>Line + N mm, a higher centile, or El-Dib Figure 4's risk zones. Needs clinical input.</span></li>
+        <li><b>Local time zone for day of life</b><span>Which time zone defines the scan's calendar day (hospital local time, e.g. Europe/London, is the suggested default).</span></li>
+      </ol>
+    </section>
+
+    <section id="history">
+      <h2>Change history</h2>
+      <p class="muted">Version numbers match the published versions of this page. Each publish keeps the same link and adds a new version; the newest is always shown.</p>
+      <div class="hist"><table>
+        <thead><tr><th>Version</th><th>Date</th><th>Changes</th></tr></thead>
+        <tbody>
+<tr class="cur"><td class="vn">v6</td><td class="dt">5 Oct 2026</td><td><b>Version and change history added</b><ul><li>Version line under the title</li><li>This change-history section</li></ul></td></tr>
+<tr><td class="vn">v5</td><td class="dt">5 Oct 2026</td><td><b>Admin editor, decision capture and learning loop</b><ul><li>Admin rule editor: pre-filled values, draft → validate → preview impact → approve → publish as a new revision, rollback, audit trail</li><li>Optional clinician decision capture with decided-at timestamp, reasons and action taken, linked to RiskReport</li><li>Learning loop: agreement dashboard, regression-based threshold suggestions as draft revisions, human approval</li><li>Risks: clinician band as ground truth, data volume, governance, regulatory change control, missing login and migrations</li><li>Rule-set changes now become revisions (e.g. numic_flow_levene@2); 3 new open decisions</li></ul></td></tr>
+<tr><td class="vn">v4</td><td class="dt">5 Oct 2026</td><td><b>Combining the layers and configuration parameters</b><ul><li>Combining the three layers: blind spots of a plain sum, options A–D, option D worked through on six cases</li><li>Configuration parameters: Tier 1 clinical rule-set values for Levene and Brouwer, Tier 2 deployment and display settings</li><li>2 new open decisions: how layers combine, first-scan policy</li></ul></td></tr>
+<tr><td class="vn">v3</td><td class="dt">5 Oct 2026</td><td><b>Rule IDs renamed</b><ul><li>New rule sets numic_flow_levene (default) and numic_flow_brouwer</li><li>numic_flow_v1 and numic_flow_v2_pre95 retired; affected files listed</li></ul></td></tr>
+<tr><td class="vn">v2</td><td class="dt">5 Oct 2026</td><td><b>Date of birth and scan time replace day of life</b><ul><li>Patient info holds date of birth and gestational age at birth; scan date/time is the existing measured_at</li><li>Day of life is worked out, not entered; privacy and time-zone impacts added</li></ul></td></tr>
+<tr><td class="vn">v1</td><td class="dt">5 Oct 2026</td><td><b>First version</b><ul><li>Two age-based rule sets (Levene, Brouwer with age-based AHW and TOD)</li><li>Files to change, impact and open decisions</li></ul></td></tr>
+        </tbody>
+      </table></div>
+    </section>
+
+    <footer>Change analysis for discussion. No code has been changed. Reference-table values are still to be taken from the primary sources and checked by a clinician.</footer>
+  </main>
+</div>
+</body>
+</html>

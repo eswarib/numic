@@ -5,10 +5,11 @@ import { CONFIG } from "./config.js";
 import { postDemoNumicFlow, fetchScoreVersions } from "./api.js";
 import { applyPreset, PRESETS } from "./presets.js";
 import { readScan, buildRecord, clinicalPayload } from "./measurements.js";
+import { refreshTrendFromForm } from "./trend.js";
 
 function setTierUi(tier) {
   document.querySelectorAll(".risk-item").forEach((el) => el.classList.remove("active"));
-  document.querySelectorAll(".decision-card").forEach((el) => el.classList.remove("active"));
+  document.querySelectorAll(".active-decision").forEach((el) => el.classList.remove("active"));
   const map = {
     low: { risk: "riskLow", dec: "decLow" },
     moderate: { risk: "riskMod", dec: "decMod" },
@@ -111,9 +112,38 @@ function togglePriorPanelDisabled(disabled) {
 function wireProgressionToggle() {
   const cb = document.getElementById("includeProgression");
   if (!cb) return;
-  const sync = () => togglePriorPanelDisabled(!cb.checked);
+  const sync = () => {
+    togglePriorPanelDisabled(!cb.checked);
+    refreshTrendFromForm();
+  };
   cb.addEventListener("change", sync);
   sync();
+}
+
+function wireTrendUpdates() {
+  const ids = [
+    "vi-prior",
+    "ahw-prior",
+    "tod-prior",
+    "dt-prior",
+    "vi-current",
+    "ahw-current",
+    "tod-current",
+    "dt-current",
+    "viP97Ref",
+  ];
+  for (const id of ids) {
+    const el = document.getElementById(id);
+    if (!el) continue;
+    el.addEventListener("input", refreshTrendFromForm);
+    el.addEventListener("change", refreshTrendFromForm);
+  }
+
+  const chart = document.getElementById("trendChart");
+  if (chart && typeof ResizeObserver !== "undefined") {
+    const ro = new ResizeObserver(() => refreshTrendFromForm());
+    ro.observe(chart);
+  }
 }
 
 async function init() {
@@ -121,10 +151,15 @@ async function init() {
   document.getElementById("scenarioPreset").value = "low";
   await loadScoreVersions();
   wireProgressionToggle();
+  wireTrendUpdates();
+  refreshTrendFromForm();
 
   document.getElementById("scenarioPreset").addEventListener("change", (e) => {
     const v = e.target.value;
-    if (v && PRESETS[v]) applyPreset(v);
+    if (v && PRESETS[v]) {
+      applyPreset(v);
+      refreshTrendFromForm();
+    }
   });
 
   document.getElementById("calcBtn").addEventListener("click", runScore);
@@ -135,4 +170,4 @@ async function init() {
 init().catch(console.error);
 
 // Expose for future embedding tests or e2e hooks
-globalThis.__NUMIC_DEMO__ = { CONFIG, runScore, applyPreset };
+globalThis.__NUMIC_DEMO__ = { CONFIG, runScore, applyPreset, refreshTrendFromForm };
