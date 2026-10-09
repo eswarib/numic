@@ -204,8 +204,11 @@ async function viewBaby(seq, id) {
 
     <section class="card charts" aria-label="Measurement trends">
       <h2>Trend by age at scan</h2>
-      <p class="muted chart-key"><span class="key key--line"></span>measurement
-        <span class="key key--ref1"></span>1-point threshold <span class="key key--ref2"></span>2-point threshold</p>
+      <p class="muted chart-key">
+        <span class="key-item"><span class="key key--line"></span>measurement</span>
+        <span class="key-item"><span class="key key--ref1"></span>97th centile / ELVIS lower cut-off</span>
+        <span class="key-item"><span class="key key--ref2"></span>97th centile + 4 mm / higher cut-off</span>
+      </p>
       <div class="chart-grid">
         ${["vi", "ahw", "tod"]
           .map((m) => `<figure class="chart"><figcaption>${m.toUpperCase()} (mm)</figcaption><div class="chart__plot" data-metric="${m}"></div></figure>`)
