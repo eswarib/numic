@@ -24,7 +24,8 @@ Other useful URLs: `/health`, `/docs` (OpenAPI).
 
 ## What a visitor can do
 
-- **Baby list**: 10 shared, read-only seed babies (`DEMO-0001`…`DEMO-0010`) plus any they added.
+- **Baby list**: 5 of the 10 shared, read-only seed babies (chosen in `js/config.js` `listedSeedBabies`, so the list
+  fits one screen) plus any the visitor added. All 10 are in the database and open by URL, e.g. `#/baby/DEMO-0003`.
 - **Baby view**: trend charts of VI, AHW and TOD over **age at scan**, with the Levene 97th-centile line and the
   line + 4 mm for VI and the fixed AHW/TOD cut-offs; every scan's band with layer points, plain-language reasons
   and the rule revision (`numic_flow_levene@1`). Day of life and age at scan are worked out, never typed.
@@ -51,11 +52,32 @@ Other useful URLs: `/health`, `/docs` (OpenAPI).
 header, not a cookie, so the demo works inside an embedded frame). A request without a valid token gets a new
 sandbox. Every query returns seed rows plus the current sandbox's rows. Seed rows return 403 on delete.
 
-**Seed dates.** Seed babies are stored as "born N days ago, scanned on day k at HH:MM" and re-dated on start-up and
-when the day changes, so ages stay realistic. Visitor scans on seed babies move with them.
+**Scan timing.** Seed scans follow the preterm cranial ultrasound protocol
+(`docs/literature/Preterm-infants-cranial-ultrasound-timings.pptx`, UCLH, after Rennie et al. 2008), implemented in
+`src/numic/demo/protocol.py`:
 
-**Seed spread.** 6 low, 2 moderate, 2 high; `DEMO-0004` has only a first scan; `DEMO-0009`'s first scan (24+5 wk)
-is outside the Levene chart and shows "Not scored" rather than a guessed line. `tests/test_demo_sandbox.py` checks this.
+| Scan | < 30 weeks | 31–35 weeks |
+|---|---|---|
+| Admission (day 0) | yes | yes |
+| Days 1, 2, 3 | yes | |
+| Day 7 | yes | yes |
+| Weekly to 32 weeks | yes | |
+| 35 weeks | yes | yes |
+| Term corrected (40 weeks) | yes | yes |
+| Discharge | yes | |
+
+The seed file (`src/numic/demo/seed_babies.json`) gives each baby its gestational age at birth, how many days ago
+it was born, an optional discharge day, and a measurement trajectory as keyframes; the protocol days are filled in by
+interpolation. Only scans before today exist, so babies still in the unit show a partial schedule. Each seed scan
+shows its timepoint ("Day 2", "Weekly", "Term corrected").
+
+**Seed dates.** Everything is an offset from today ("born N days ago, scanned on day k at HH:MM"), re-dated on
+start-up and when the day changes, so ages stay realistic. Visitor scans on seed babies move with them.
+
+**Seed spread.** Latest bands 6 low, 2 moderate, 2 high. `DEMO-0001` runs the full course to discharge (13 scans);
+`DEMO-0004` was admitted yesterday (admission scan only); `DEMO-0005`, `0007` and `0010` follow the 31–35 week
+schedule; `DEMO-0009` was born at 25+4, so its first three scans are before the Levene chart starts (26 weeks) and show
+"Not scored" rather than a guessed line. `tests/test_demo_sandbox.py` and `tests/test_protocol.py` check this.
 
 **Limits and clean-up** (Tier 2 settings, `NUMIC_` env prefix): 20 babies per sandbox
 (`NUMIC_DEMO_MAX_BABIES_PER_SANDBOX`), 30 scans per baby (`NUMIC_DEMO_MAX_SCANS_PER_BABY`), 60 writes per minute

@@ -16,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from numic.demo.db import DemoDatabase, as_utc, utcnow
 from numic.demo.models import DemoBaby, DemoSandbox, DemoScan
+from numic.demo.protocol import protocol_scan_days
 
 log = logging.getLogger(__name__)
 
@@ -26,6 +27,8 @@ SEED_PATH = Path(__file__).resolve().parent / "seed_babies.json"
 class SeedScan:
     day: int
     time: time
+    label: str
+    """Protocol timepoint, e.g. "Day 2", "Weekly", "Term corrected"."""
     vi_left: float
     vi_right: float
     ahw: float
@@ -43,33 +46,66 @@ class SeedBaby:
     scans: tuple[SeedScan, ...]
 
 
+def _interpolate(keyframes: list[list[float]], day: int) -> tuple[float, float, float]:
+    """Straight-line VI / AHW / TOD between keyframes ``[day, vi, ahw, tod]``; flat beyond the ends."""
+    if day <= keyframes[0][0]:
+        return tuple(keyframes[0][1:])
+    for (d0, *v0), (d1, *v1) in zip(keyframes, keyframes[1:]):
+        if day <= d1:
+            f = (day - d0) / (d1 - d0)
+            return tuple(a + (b - a) * f for a, b in zip(v0, v1))
+    return tuple(keyframes[-1][1:])
+
+
+def _concern(changes: list[list], day: int) -> str:
+    current = "none"
+    for from_day, level in changes:
+        if day >= from_day:
+            current = level
+    return current
+
+
+def _expand(b: dict) -> SeedBaby:
+    """Schedule the protocol scans that fall before today and fill in their measurements."""
+    keyframes = sorted(b["keyframes"])
+    lr = b.get("vi_left_minus_right", 0.4)
+    scans = []
+    for planned in protocol_scan_days(b["ga_weeks"], b["ga_days"], b.get("discharge_day")):
+        if planned.day >= b["born_days_ago"]:
+            break  # not happened yet: the baby is still in the unit
+        vi, ahw, tod = _interpolate(keyframes, planned.day)
+        at = b["admission_time"] if planned.day == 0 else b["scan_time"]
+        scans.append(
+            SeedScan(
+                day=planned.day,
+                time=time.fromisoformat(at),
+                label=planned.label,
+                vi_left=round(vi - lr, 1),
+                vi_right=round(vi, 1),
+                ahw=round(ahw, 1),
+                tod=round(tod, 1),
+                concern=_concern(b["concern"], planned.day),
+            )
+        )
+    if not scans:
+        raise ValueError(f"{b['id']}: no protocol scans before today")
+    return SeedBaby(b["id"], b["story"], b["born_days_ago"], b["ga_weeks"], b["ga_days"], tuple(scans))
+
+
 @lru_cache
 def load_seed(path: Path = SEED_PATH) -> tuple[SeedBaby, ...]:
     raw = json.loads(path.read_text())
-    out = []
-    for b in raw["babies"]:
-        scans = tuple(
-            SeedScan(
-                day=s["day"],
-                time=time.fromisoformat(s["time"]),
-                vi_left=s["vi_left"],
-                vi_right=s["vi_right"],
-                ahw=s["ahw"],
-                tod=s["tod"],
-                concern=s["concern"],
-            )
-            for s in b["scans"]
-        )
-        if any(s.day >= b["born_days_ago"] for s in scans):
-            raise ValueError(f"{b['id']}: every seed scan must be before today")
-        out.append(
-            SeedBaby(b["id"], b["story"], b["born_days_ago"], b["ga_weeks"], b["ga_days"], scans)
-        )
-    return tuple(out)
+    return tuple(_expand(b) for b in raw["babies"])
 
 
 def seed_stories() -> dict[str, str]:
     return {b.id: b.story for b in load_seed()}
+
+
+@lru_cache
+def seed_scan_labels() -> dict[str, str]:
+    """Protocol timepoint for each seed scan ID (visitor scans have none)."""
+    return {seed_scan_id(b.id, i): s.label for b in load_seed() for i, s in enumerate(b.scans)}
 
 
 def local_today(tz: str) -> date:

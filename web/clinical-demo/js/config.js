@@ -21,6 +21,12 @@ export const CONFIG = {
     mild: "Mild",
     clear: "Clear",
   },
+  /**
+   * Seed babies shown in the list (all 10 exist in the database and open by URL, e.g. #/baby/DEMO-0003).
+   * Chosen for range: full course to discharge, later-preterm schedule, moderate, high, and outside the chart.
+   * Empty list shows all.
+   */
+  listedSeedBabies: ["DEMO-0001", "DEMO-0005", "DEMO-0006", "DEMO-0008", "DEMO-0009"],
   /** Default date of birth for a new synthetic baby: this many days before today. */
   newBabyDefaultAgeDays: 7,
   timeZone: "Europe/London",

@@ -43,6 +43,9 @@ class Assessment(BaseModel):
 class ScanOut(BaseModel):
     id: str
     measured_at: datetime
+    protocol_label: str | None = Field(
+        None, description="Scan timing protocol timepoint for seed scans, e.g. 'Day 2' or 'Term corrected'."
+    )
     day_of_life: int | None
     age_weeks: float | None
     age_label: str | None

@@ -52,7 +52,9 @@ async function viewList(seq) {
   if (seq !== renderSeq) return;
   ruleSetChip(data.rule_set);
   const own = data.babies.filter((b) => !b.read_only);
-  const seed = data.babies.filter((b) => b.read_only);
+  // All 10 seed babies stay in the database; the list shows a chosen few so it fits one screen.
+  const listed = CONFIG.listedSeedBabies;
+  const seed = data.babies.filter((b) => b.read_only && (!listed?.length || listed.includes(b.id)));
   const row = (b) => `
     <li>
       <a class="baby-row" href="#/baby/${encodeURIComponent(b.id)}">
@@ -69,10 +71,13 @@ async function viewList(seq) {
   app.innerHTML = `
     <section class="intro">
       <h1>Demo NICU</h1>
-      <p>Ten synthetic babies with serial cranial ultrasound measurements. Open one to see its trend and how each
-      scan's risk band is worked out, add scans to any baby, or add your own baby. Your changes are visible only to you.</p>
-      <a class="btn btn--primary" href="#/new">Add a baby</a>
-      <span class="muted">${data.sandbox_baby_count} of ${data.max_babies} added</span>
+      <p>Synthetic preterm babies scanned on a standard preterm timetable: admission, days 1–3 and 7, weekly to
+      32 weeks, then 35 weeks, term and discharge. Open a baby to see its trend and how each band is worked out.
+      Anything you add is visible only to you.</p>
+      <div class="intro__actions">
+        <a class="btn btn--primary" href="#/new">Add a baby</a>
+        <span class="muted">${data.sandbox_baby_count} of ${data.max_babies} added</span>
+      </div>
     </section>
     ${own.length ? `<h2 class="list-title">Your babies</h2><ul class="baby-list">${own.map(row).join("")}</ul>` : ""}
     <h2 class="list-title">Pre-loaded examples</h2>
@@ -107,7 +112,7 @@ function scanCard(scan, baby, index) {
     <article class="scan">
       <header class="scan__head">
         <div>
-          <h3>Scan ${index + 1} · ${esc(fmtDateTime(scan.measured_at))}</h3>
+          <h3>Scan ${index + 1}${scan.protocol_label ? ` · ${esc(scan.protocol_label)}` : ""} · ${esc(fmtDateTime(scan.measured_at))}</h3>
           <p class="calc" title="Worked out from date of birth, gestational age and scan time">${esc(calc.join(" · "))}</p>
         </div>
         ${a.status === "scored" ? bandChip(a.risk_tier, a.numic_flow_score) : `<span class="band band--none">Not scored</span>`}

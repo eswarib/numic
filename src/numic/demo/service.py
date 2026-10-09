@@ -7,6 +7,7 @@ from zoneinfo import ZoneInfo
 from numic.api.schemas.scoring import ClinicalConcern, ClinicalScoreInput, VentricularMeasurements
 from numic.demo.db import as_utc
 from numic.demo.models import DemoBaby, DemoScan
+from numic.demo.seed import seed_scan_labels
 from numic.demo.schemas import (
     Assessment,
     BabyDetail,
@@ -109,6 +110,7 @@ def score_scans(baby: DemoBaby, scans: list[DemoScan], rules: NumicFlowRules, tz
             ScanOut(
                 id=s.id,
                 measured_at=as_utc(s.measured_at),
+                protocol_label=seed_scan_labels().get(s.id) if s.sandbox_id is None else None,
                 day_of_life=day,
                 age_weeks=None if age_w is None else round(age_w, 3),
                 age_label=label,

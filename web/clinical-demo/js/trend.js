@@ -154,7 +154,7 @@ export function renderMetricChart(host, metric, scans, rule) {
       extra = `<div>Outside chart range</div>`;
     }
     tip.innerHTML =
-      `<strong>${m.label} ${p.y} mm</strong><div>${ga(p.x)} wk · day ${p.scan.day_of_life}</div>${extra}`;
+      `<strong>${m.label} ${p.y} mm</strong><div>${p.scan.protocol_label ? `${esc(p.scan.protocol_label)} · ` : ""}${ga(p.x)} wk · day ${p.scan.day_of_life}</div>${extra}`;
     tip.hidden = false;
     const left = Math.min(Math.max(X(p.x) - 60, 0), w - 130);
     tip.style.left = `${(left / w) * 100}%`;

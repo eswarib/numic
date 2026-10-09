@@ -334,12 +334,23 @@ a:focus-visible {
   color: var(--text-2);
 }
 
-.intro .btn {
-  margin-right: 0.6rem;
+.intro h1 {
+  margin-bottom: 0.2rem;
+}
+
+.intro p {
+  margin: 0 0 0.6rem;
+}
+
+.intro__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
 }
 
 .list-title {
-  margin-top: 1.6rem;
+  margin-top: 1.2rem;
 }
 
 .baby-list {
@@ -734,5 +745,22 @@ a:focus-visible {
   .add-baby,
   .add-scan {
     max-width: 760px;
+  }
+
+  /* one line per baby so the list fits one screen */
+  .baby-row {
+    grid-template-columns: 6.5rem minmax(0, 1.7fr) minmax(0, 1.3fr) 9.5rem;
+    padding: 0.6rem 0.9rem;
+  }
+
+  .baby-row__story,
+  .baby-row__meta,
+  .baby-row__band {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .baby-row__band {
+    justify-self: end;
   }
 }

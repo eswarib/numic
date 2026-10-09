@@ -98,10 +98,9 @@ def test_seed_band_mix_and_special_cases(client) -> None:
         for s in v.baby(b_id)["scans"]
         if s["assessment"]["status"] == "not_scored"
     ]
-    assert len(not_scored) == 1
-    b_id, scan = not_scored[0]
-    assert b_id == "DEMO-0009"
-    assert "outside" in scan["assessment"]["message"]
+    assert not_scored and {b_id for b_id, _ in not_scored} == {"DEMO-0009"}
+    assert all("outside" in scan["assessment"]["message"] for _, scan in not_scored)
+    assert all(scan["age_weeks"] < 26 for _, scan in not_scored)
 
 
 @pytest.mark.parametrize("today", [date(2026, 3, 29), date(2026, 10, 25), date(2027, 2, 28)])
@@ -123,8 +122,19 @@ def test_seed_ages_are_realistic_on_any_date(client, today) -> None:
         return ages
 
     ages = _db(client, check)
-    assert ages["DEMO-0001"] == ["30+3", "31+3", "32+3"]
-    assert ages["DEMO-0009"][0] == "24+5"  # the intentional out-of-chart case
+    assert ages["DEMO-0001"][:5] == ["26+0", "26+1", "26+2", "26+3", "27+0"]
+    assert ages["DEMO-0001"][-3:] == ["35+0", "40+0", "40+5"]  # 35 weeks, term corrected, discharge
+    assert ages["DEMO-0009"][0] == "25+4"  # the intentional out-of-chart case
+
+
+def test_seed_scans_follow_the_protocol(client) -> None:
+    detail = Visitor(client).baby("DEMO-0001")
+    labels = [s["protocol_label"] for s in detail["scans"]]
+    assert labels == ["Admission", "Day 1", "Day 2", "Day 3", "Day 7"] + ["Weekly"] * 5 + [
+        "35 weeks",
+        "Term corrected",
+        "Discharge",
+    ]
 
 
 def test_seed_result_is_explained(client) -> None:

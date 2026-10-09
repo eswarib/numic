@@ -1,109 +1,85 @@
 {
-  "_comment": "Synthetic demo babies. Dates are offsets: born N days before today, scanned on day k of life at local time. Rebuilt on start-up and daily so ages stay realistic. To be reviewed by a clinician for realism (DEMO open question).",
+  "_comment": "Synthetic demo babies. Scan days follow the preterm cranial ultrasound protocol (numic.demo.protocol): babies born < 30 weeks are scanned on admission, days 1, 2, 3 and 7, weekly to 32 weeks, at 35 weeks, term corrected and discharge; 31-35 weeks on admission, day 7, 35 weeks and term corrected. Only scans before today are created, so babies still in the unit have a partial schedule. Measurements are interpolated between the keyframes [day, VI right mm, AHW mm, TOD mm]; VI left = VI right - vi_left_minus_right. Dates are offsets from today and rebuilt daily. To be reviewed by a clinician for realism.",
   "babies": [
     {
       "id": "DEMO-0001",
-      "story": "Stable, small ventricles",
-      "born_days_ago": 19,
-      "ga_weeks": 30, "ga_days": 0,
-      "scans": [
-        {"day": 3, "time": "09:00", "vi_left": 8.6, "vi_right": 9.0, "ahw": 3.0, "tod": 20.0, "concern": "none"},
-        {"day": 10, "time": "09:30", "vi_left": 8.8, "vi_right": 9.1, "ahw": 3.2, "tod": 20.5, "concern": "none"},
-        {"day": 17, "time": "10:00", "vi_left": 8.7, "vi_right": 9.0, "ahw": 3.1, "tod": 20.4, "concern": "none"}
-      ]
+      "story": "Born at 26 weeks, stable throughout, scanned to discharge",
+      "born_days_ago": 108, "ga_weeks": 26, "ga_days": 0, "discharge_day": 103,
+      "admission_time": "14:20", "scan_time": "09:30",
+      "keyframes": [[0, 8.5, 2.5, 18.0], [56, 10.5, 3.0, 20.0], [103, 12.5, 3.5, 22.0]],
+      "concern": [[0, "none"]]
     },
     {
       "id": "DEMO-0002",
-      "story": "Slow growth, stays below the line",
-      "born_days_ago": 18,
-      "ga_weeks": 27, "ga_days": 4,
-      "scans": [
-        {"day": 2, "time": "08:45", "vi_left": 10.2, "vi_right": 10.5, "ahw": 4.0, "tod": 21.0, "concern": "none"},
-        {"day": 9, "time": "09:15", "vi_left": 10.5, "vi_right": 10.8, "ahw": 4.5, "tod": 22.0, "concern": "none"},
-        {"day": 16, "time": "09:00", "vi_left": 10.6, "vi_right": 11.0, "ahw": 5.0, "tod": 22.5, "concern": "none"}
-      ]
+      "story": "Born at 28 weeks, in the unit, weekly scans stable",
+      "born_days_ago": 40, "ga_weeks": 28, "ga_days": 3,
+      "admission_time": "03:45", "scan_time": "10:00",
+      "keyframes": [[0, 9.8, 3.5, 20.0], [40, 11.5, 4.5, 22.0]],
+      "concern": [[0, "none"]]
     },
     {
       "id": "DEMO-0003",
-      "story": "Borderline anterior horn, mild clinical concern",
-      "born_days_ago": 13,
-      "ga_weeks": 29, "ga_days": 2,
-      "scans": [
-        {"day": 4, "time": "11:00", "vi_left": 11.2, "vi_right": 11.5, "ahw": 6.0, "tod": 23.5, "concern": "none"},
-        {"day": 11, "time": "10:30", "vi_left": 11.0, "vi_right": 11.3, "ahw": 6.2, "tod": 24.0, "concern": "mild"}
-      ]
+      "story": "Borderline anterior horn, mild clinical concern this week",
+      "born_days_ago": 26, "ga_weeks": 29, "ga_days": 2,
+      "admission_time": "11:10", "scan_time": "09:15",
+      "keyframes": [[0, 10.5, 5.5, 22.0], [25, 11.4, 6.3, 23.5]],
+      "concern": [[0, "none"], [21, "mild"]]
     },
     {
       "id": "DEMO-0004",
-      "story": "First scan only, no trend yet",
-      "born_days_ago": 6,
-      "ga_weeks": 32, "ga_days": 1,
-      "scans": [
-        {"day": 5, "time": "14:00", "vi_left": 9.6, "vi_right": 10.0, "ahw": 4.0, "tod": 21.0, "concern": "none"}
-      ]
+      "story": "Admitted yesterday, admission scan only",
+      "born_days_ago": 1, "ga_weeks": 27, "ga_days": 1,
+      "admission_time": "16:40", "scan_time": "09:00",
+      "keyframes": [[0, 9.5, 3.0, 20.0]],
+      "concern": [[0, "none"]]
     },
     {
       "id": "DEMO-0005",
-      "story": "Just above the line, not growing",
-      "born_days_ago": 12,
-      "ga_weeks": 28, "ga_days": 0,
-      "scans": [
-        {"day": 3, "time": "09:00", "vi_left": 11.3, "vi_right": 11.6, "ahw": 6.3, "tod": 23.0, "concern": "none"},
-        {"day": 10, "time": "09:00", "vi_left": 11.8, "vi_right": 12.0, "ahw": 6.5, "tod": 23.0, "concern": "none"}
-      ]
+      "story": "Born at 33 weeks, later-preterm schedule, normal",
+      "born_days_ago": 52, "ga_weeks": 33, "ga_days": 2,
+      "admission_time": "08:30", "scan_time": "11:00",
+      "keyframes": [[0, 11.0, 4.0, 21.0], [47, 12.6, 4.5, 22.5]],
+      "concern": [[0, "none"]]
     },
     {
       "id": "DEMO-0006",
       "story": "Steady growth across all three measurements",
-      "born_days_ago": 21,
-      "ga_weeks": 26, "ga_days": 5,
-      "scans": [
-        {"day": 5, "time": "10:00", "vi_left": 10.6, "vi_right": 11.0, "ahw": 6.0, "tod": 24.0, "concern": "none"},
-        {"day": 12, "time": "10:00", "vi_left": 12.2, "vi_right": 12.5, "ahw": 7.5, "tod": 25.5, "concern": "none"},
-        {"day": 19, "time": "10:15", "vi_left": 13.2, "vi_right": 13.6, "ahw": 8.5, "tod": 26.5, "concern": "none"}
-      ]
+      "born_days_ago": 31, "ga_weeks": 26, "ga_days": 5,
+      "admission_time": "22:05", "scan_time": "09:45",
+      "keyframes": [[0, 10.2, 5.0, 23.0], [10, 10.8, 5.5, 23.5], [28, 13.3, 8.2, 26.3]],
+      "concern": [[0, "none"]]
     },
     {
       "id": "DEMO-0007",
-      "story": "Above the line with mild clinical concern",
-      "born_days_ago": 11,
-      "ga_weeks": 31, "ga_days": 0,
-      "scans": [
-        {"day": 2, "time": "13:00", "vi_left": 12.2, "vi_right": 12.5, "ahw": 8.4, "tod": 26.2, "concern": "none"},
-        {"day": 9, "time": "12:30", "vi_left": 13.0, "vi_right": 13.4, "ahw": 9.0, "tod": 27.0, "concern": "mild"}
-      ]
+      "story": "Born at 31 weeks, above the line by 35 weeks, mild concern",
+      "born_days_ago": 26, "ga_weeks": 31, "ga_days": 4,
+      "admission_time": "13:00", "scan_time": "12:30",
+      "keyframes": [[0, 12.0, 7.5, 25.5], [24, 14.2, 9.0, 27.0]],
+      "concern": [[0, "none"], [20, "mild"]]
     },
     {
       "id": "DEMO-0008",
-      "story": "Rapid enlargement after a large bleed",
-      "born_days_ago": 18,
-      "ga_weeks": 25, "ga_days": 6,
-      "scans": [
-        {"day": 4, "time": "09:00", "vi_left": 11.6, "vi_right": 12.0, "ahw": 7.0, "tod": 25.0, "concern": "none"},
-        {"day": 10, "time": "09:30", "vi_left": 14.0, "vi_right": 14.5, "ahw": 9.5, "tod": 28.0, "concern": "mild"},
-        {"day": 17, "time": "08:45", "vi_left": 16.6, "vi_right": 17.0, "ahw": 11.5, "tod": 31.0, "concern": "mild"}
-      ]
+      "story": "Rapid enlargement in the second and third weeks",
+      "born_days_ago": 24, "ga_weeks": 26, "ga_days": 1,
+      "admission_time": "05:15", "scan_time": "09:00",
+      "keyframes": [[0, 10.0, 5.0, 23.0], [3, 10.2, 5.2, 23.2], [7, 11.5, 6.5, 24.5], [21, 17.0, 11.5, 31.0]],
+      "concern": [[0, "none"], [14, "mild"]]
     },
     {
       "id": "DEMO-0009",
-      "story": "Born at 24 weeks: first scan is before the Levene chart starts",
-      "born_days_ago": 22,
-      "ga_weeks": 24, "ga_days": 2,
-      "scans": [
-        {"day": 3, "time": "10:00", "vi_left": 9.6, "vi_right": 10.0, "ahw": 6.0, "tod": 24.0, "concern": "none"},
-        {"day": 14, "time": "10:00", "vi_left": 12.6, "vi_right": 13.0, "ahw": 8.0, "tod": 26.0, "concern": "mild"},
-        {"day": 21, "time": "09:45", "vi_left": 15.5, "vi_right": 16.0, "ahw": 10.5, "tod": 29.0, "concern": "clear"}
-      ]
+      "story": "Born at 25 weeks: first scans are before the Levene chart starts",
+      "born_days_ago": 35, "ga_weeks": 25, "ga_days": 4,
+      "admission_time": "10:25", "scan_time": "10:00",
+      "keyframes": [[0, 9.8, 5.5, 23.0], [7, 10.6, 6.0, 24.0], [21, 14.0, 8.5, 27.0], [28, 16.4, 10.6, 29.4]],
+      "concern": [[0, "none"], [21, "mild"], [28, "clear"]]
     },
     {
       "id": "DEMO-0010",
-      "story": "Later preterm, normal measurements",
-      "born_days_ago": 7,
-      "ga_weeks": 33, "ga_days": 3,
-      "scans": [
-        {"day": 1, "time": "16:00", "vi_left": 11.2, "vi_right": 11.5, "ahw": 5.0, "tod": 23.0, "concern": "none"},
-        {"day": 6, "time": "11:00", "vi_left": 11.5, "vi_right": 11.8, "ahw": 5.0, "tod": 23.0, "concern": "none"}
-      ]
+      "story": "Born at 32 weeks, later-preterm schedule to term",
+      "born_days_ago": 60, "ga_weeks": 32, "ga_days": 5,
+      "admission_time": "19:50", "scan_time": "10:30",
+      "keyframes": [[0, 11.5, 4.5, 21.5], [51, 13.0, 5.0, 23.0]],
+      "concern": [[0, "none"]]
     }
   ]
 }
